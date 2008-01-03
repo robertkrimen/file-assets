@@ -23,8 +23,18 @@ sub new {
     }
     $self->cfg->{jar} or croak "You need to specify the location of the YUI Compressor jar file (something like \"yuicompressor-?.?.?.jar\")";
     -f $self->cfg->{jar} && -r _ or croak "Doesn't exist/can't read: ", $self->cfg->{jar};
+    # TODO Test if we can execute "java"
 #    -f $self->cfg->{java} && -x _ or croak "Doesn't exist/can't execute: ", $self->cfg->{java};
     return $self;
+}
+
+sub new_parse_cfg {
+    my $class = shift;
+    my $cfg = shift;
+    if ($cfg =~ m/[=;]/) {
+        return $class->SUPER::new_parse_cfg($cfg);
+    }
+    return ($class->SUPER::new_parse_cfg(""), jar => $cfg); 
 }
 
 sub build_content {

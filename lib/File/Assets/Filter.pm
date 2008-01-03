@@ -8,6 +8,48 @@ use Digest;
 use Scalar::Util qw/weaken/;
 use Carp::Clan qw/^File::Assets/;
 
+sub new_parse {
+    my $class = shift;
+    return unless my $filter = shift;
+
+    my $kind = lc $class;
+    $kind =~ s/^File::Assets::Filter:://i;
+
+    my %cfg;
+    if (ref $filter eq "") {
+        my $cfg = $filter;
+        return unless $cfg =~ s/^\s*$kind(?:\s*$|:([^:]))//i;
+        $cfg = "$1$cfg" if defined $1;
+        %cfg = $class->new_parse_cfg($cfg);
+        if (ref $_[0] eq "HASH") {
+            %cfg = (%cfg, %{ $_[0] });
+            shift;
+        }
+        elsif (ref $_[0] eq "ARRAY") {
+            %cfg = (%cfg, @{ $_[0] });
+            shift;
+        }
+    }
+    elsif (ref $filter eq "ARRAY") {
+        return unless $filter->[0] && $filter->[0] =~ m/^\s*$kind\s*$/i;
+        my @cfg = @$filter;
+        shift @cfg;
+        %cfg = @cfg;
+    }
+
+    return $class->new(%cfg, @_);
+}
+
+sub new_parse_cfg {
+    my $class = shift;
+    my $cfg = shift;
+    $cfg = "" unless defined $cfg;
+    my %cfg;
+    %cfg = map { my @itm = split m/=/, $_, 2; $itm[0], $itm[1] } split m/;/, $cfg;
+    $cfg{__cfg__} = $cfg;
+    return %cfg;
+}
+
 sub new {
     my $class = shift;
     my $self = $class->SUPER::new;

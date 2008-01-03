@@ -6,7 +6,7 @@ use warnings;
 use MIME::Types();
 use Scalar::Util qw/blessed/;
 use Module::Pluggable search_path => q/File::Assets::Filter/, require => 1, sub_name => q/filter_load/;
-__PACKAGE__->filter_load();
+my @filters = reverse sort  __PACKAGE__->filter_load();
 use Carp::Clan qw/^File::Assets/;
 use Digest;
 
@@ -73,14 +73,21 @@ sub parse_asset_by_content {
 sub parse_filter {
     my $class = shift;
     my $filter = shift;
-    my $group = shift;
-    my %new = ref $_[0] eq "HASH" ? %{ $_[0] } : @_;
-    if ($filter =~ m/\s*concat\s*/i) {
-        return File::Assets::Filter::Concat->new(group => $group, %new);
+
+    my $_filter;
+    for my $possible (@filters) {
+        last if $_filter = $possible->new_parse($filter, @_);
     }
-    elsif ($filter =~ m/\s*yuicompressor\s*/i) {
-        return File::Assets::Filter::YUICompressor->new(group => $group, %new);
-    }
+
+    return $_filter;
+#    my $group = shift;
+#    my %new = ref $_[0] eq "HASH" ? %{ $_[0] } : @_;
+#    if ($filter =~ m/\s*concat\s*/i) {
+#        return File::Assets::Filter::Concat->new(group => $group, %new);
+#    }
+#    elsif ($filter =~ m/\s*yuicompressor\s*/i) {
+#        return File::Assets::Filter::YUICompressor->new(group => $group, %new);
+#    }
 }
 
 sub build_asset_path {

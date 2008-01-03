@@ -45,7 +45,7 @@ is($html, <<_END_);
 <link rel="stylesheet" type="text/css" href="http://example.com/static/css/banana.css" />
 _END_
 
-ok($assets->filter("concat" => { type => ".css", path => '%D.%e' }));
+ok($assets->filter([ "concat" => type => ".css", path => '%D.%e', ]));
 $html = $assets->export;
 is($html, <<_END_);
 <link rel="stylesheet" type="text/css" href="http://example.com/static/0721489ea0ebb3a72f863ebb315cd6ad.css" />

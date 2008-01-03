@@ -144,7 +144,7 @@ sub _exports {
 sub filter {
     my $self = shift;
     my $filter = shift;
-    return unless $filter = File::Assets::Util->parse_filter($filter, $self, @_);
+    return unless $filter = File::Assets::Util->parse_filter($filter, @_, group => $self);
     push @{ $self->filters }, $filter;
     return $filter;
 }

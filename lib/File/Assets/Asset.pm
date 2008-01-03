@@ -4,7 +4,6 @@ use warnings;
 use strict;
 
 use File::Assets::Util;
-use File::Assets::Group;
 use Carp::Clan qw/^File::Assets/;
 use Object::Tiny qw/rsc type rank/;
 
@@ -92,11 +91,6 @@ sub mtime {
     my $self = shift;
     return 0 unless my $stat = $self->file->stat;
     return $stat->mtime;
-}
-
-sub assets {
-    my $class = shift;
-    return File::Assets::Group->new(@_);
 }
 
 1;
