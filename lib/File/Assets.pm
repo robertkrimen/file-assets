@@ -33,6 +33,7 @@ sub new {
     my $rsc = File::Assets::Util->parse_rsc($_{rsc} || $_{base_rsc} || $_{base});
     $rsc->uri($_{uri} || $_{base_uri}) if $_{uri} || $_{base_uri};
     $rsc->dir($_{dir} || $_{base_dir}) if $_{dir} || $_{base_dir};
+    $rsc->path($_{base_path}) if $_{base_path};
     $self->{rsc} = $rsc;
 
     my %registry;

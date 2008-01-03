@@ -43,12 +43,12 @@ sub parse_type {
 sub parse_rsc {
     my $class = shift;
     my $resource = shift;
-    my ($uri, $dir) = @_;
+    my ($uri, $dir, $path) = @_;
     if (ref $resource eq "ARRAY") {
-        ($uri, $dir) = @$resource;
+        ($uri, $dir, $path) = @$resource;
     }
     elsif (ref $resource eq "HASH") {
-        ($uri, $dir) = @$resource{qw/uri dir/};
+        ($uri, $dir, $path) = @$resource{qw/uri dir path/};
     }
     elsif (blessed $resource) {
         if ($resource->isa("Path::Resource")) {
@@ -56,7 +56,7 @@ sub parse_rsc {
         }
         # TODO: URI::ToDisk
     }
-    return Path::Resource->new(uri => $uri, dir => $dir);
+    return Path::Resource->new(uri => $uri, dir => $dir, path => $path);
 }
 
 sub parse_asset_by_path {

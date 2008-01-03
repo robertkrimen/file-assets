@@ -17,7 +17,13 @@ sub new {
         $self->{content} = $content if $content;
     }
     elsif ($base && $path) {
-        $self->{rsc} = $base->child($path);
+        if ($path =~ m/^\//) {
+            $self->{rsc} = $base->clone;
+            $self->{rsc}->path($path);
+        }
+        else {
+            $self->{rsc} = $base->child($path);
+        }
         $self->{type} = File::Assets::Util->parse_type($type) ||
             File::Assets::Util->parse_type($path) or 
             croak "Don't know type for asset ($path)";
@@ -57,7 +63,7 @@ sub content {
     my $self = shift;
     return $self->{content} ||= do {
         my $file = $self->file;
-        croak "Trying to get content from non-existent file" unless -e $file;
+        croak "Trying to get content from non-existent file ($file)" unless -e $file;
         local $/ = undef;
         \$self->file->slurp;
     }
