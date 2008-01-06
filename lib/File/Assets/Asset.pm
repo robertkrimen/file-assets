@@ -18,8 +18,7 @@ sub new {
     }
     elsif ($base && $path) {
         if ($path =~ m/^\//) {
-            $self->{rsc} = $base->clone;
-            $self->{rsc}->path($path);
+            $self->{rsc} = $base->clone($path);
         }
         else {
             $self->{rsc} = $base->child($path);

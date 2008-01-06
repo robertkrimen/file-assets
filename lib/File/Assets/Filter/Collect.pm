@@ -9,6 +9,7 @@ use Digest;
 use File::Assets;
 
 my %default = (qw/
+        skip_single 0
         skip_if_exists 0
         check_content 0
         content_digest 0
@@ -61,7 +62,7 @@ sub post {
 
     return unless @$matched;
 
-    return if 1 == @$matched;
+    return if $self->cfg->{skip_single} && 1 == @$matched;
 
     if (my $digester = $self->stash->{content_digester}) {
         $self->stash->{content_digest} = $digester->hexdigest;
