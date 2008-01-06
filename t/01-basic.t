@@ -4,21 +4,22 @@ use strict;
 
 use Test::More qw/no_plan/;
 
-use File::Assets;
-use Directory::Scratch;
+use FindBin;
+use lib "$FindBin::Bin/lib";
 
-my $scratch = Directory::Scratch->new;
-$scratch->create_tree({
-    map { $_ => $_ } qw(css/apple.css css/banana.css js/apple.js),
-});
+use File::Assets::Test;
+my $scratch = File::Assets::Test->scratch;
 
-my $assets = File::Assets->new(base => [ "http://example.com/static", $scratch->base ]);
-ok($assets);
-
-ok($assets->include("/css/apple.css"));
-ok($assets->include("/js/apple.js"));
+ok(-e $scratch->base->file("css/apple.css"));
+ok(-e $scratch->base->file("css/banana.css"));
+ok(-e $scratch->base->file("js/apple.js"));
 
 my $html;
+ok(my $assets = File::Assets->new(base => [ "http://example.com/static", $scratch->base ]));
+
+ok($assets->include("css/apple.css"));
+ok($assets->include("js/apple.js"));
+
 $html = $assets->export;
 is($html, <<_END_);
 <link rel="stylesheet" type="text/css" href="http://example.com/static/css/apple.css" />
@@ -35,8 +36,7 @@ is($html, <<_END_);
 <script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
 _END_
 
-
-ok($assets->include("/css/banana.css"));
+ok($assets->include("css/banana.css"));
 
 $html = $assets->export;
 is($html, <<_END_);
@@ -45,11 +45,3 @@ is($html, <<_END_);
 <link rel="stylesheet" type="text/css" href="http://example.com/static/css/banana.css" />
 _END_
 
-ok($assets->filter([ "concat" => type => ".css", path => '%D.%e', ]));
-$html = $assets->export;
-is($html, <<_END_);
-<link rel="stylesheet" type="text/css" href="http://example.com/static/0721489ea0ebb3a72f863ebb315cd6ad.css" />
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-_END_
-
-ok($scratch->exists("0721489ea0ebb3a72f863ebb315cd6ad.css"));
