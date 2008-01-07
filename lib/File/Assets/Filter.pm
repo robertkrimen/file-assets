@@ -19,6 +19,7 @@ sub new_parse {
 
     my $kind = lc $class;
     $kind =~ s/^File::Assets::Filter:://i;
+    $kind =~ s/::/-/g;
 
     my %cfg;
     if (ref $filter eq "") {

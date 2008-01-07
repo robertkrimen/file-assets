@@ -22,8 +22,35 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new(@_, CLEANUP => 0);
     $self->create_tree({
-        map { $_ => "/* Test file: $_ */\n" } qw(static/css/apple.css static/css/banana.css static/js/apple.js),
+        (map { $_ => "/* Test file: $_ */\n" } qw(static/css/apple.css static/css/banana.css static/js/apple.js)),
+        'static/css/cherry.css' => <<_END_,
+div.cherry {
+    font-weight: bold;
+    /* Some comment */
+    font-weight: 100;
+    border: 1px solid #aaaaaa;
+}
+
+div.cherry em {
+    color: red;
+}
+_END_
+        
+        'static/js/cherry.js' => <<_END_,
+(function(){
+    alert("Nothing happens.");
+
+    var cherry = 1 + 2;
+
+    /* Nothing happens */
+    return function(alpha, beta, delta) {
+        return alpha + beta + delta;
+    } 
+
+}());
+_END_
     });
+
     return $self;
 }
 

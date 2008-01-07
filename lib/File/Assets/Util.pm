@@ -11,9 +11,9 @@ use Carp::Clan qw/^File::Assets/;
 use Digest;
 
 {
-    my $types = MIME::Types->new(only_complete => 1);
+    my $types;
     sub types {
-        return $types;
+        return $types ||= MIME::Types->new(only_complete => 1);
     }
 }
 
