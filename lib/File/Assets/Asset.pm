@@ -38,7 +38,7 @@ sub new {
     else {
         croak "Don't know what to do: @_";
     }
-    croak "Don't understand rank ($rank)" if $rank && $rank =~ m/\D/;
+    croak "Don't understand rank ($rank)" if $rank && $rank =~ m/[^\d\+\-\.]/;
     $self->{rank} = $rank ? $rank : 0;
     return $self;
 }

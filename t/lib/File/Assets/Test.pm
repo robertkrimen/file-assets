@@ -2,6 +2,7 @@ package File::Assets::Test;
 
 use File::Assets;
 use Directory::Scratch;
+use Test::Memory::Cycle;
 
 my $scratch;
 sub scratch {
@@ -10,8 +11,14 @@ sub scratch {
     }
 }
 
+my $assets;
 sub assets {
-    return File::Assets->new(base => [ "http://example.com/", scratch->base, "/static" ]);
+    memory_cycle_ok($assets) if $assets;
+    return $assets = File::Assets->new(base => [ "http://example.com/", scratch->base, "/static" ]);
+}
+
+END {
+    memory_cycle_ok($assets);
 }
 
 package File::Assets::Test::Scratch;

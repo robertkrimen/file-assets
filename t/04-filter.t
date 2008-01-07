@@ -19,7 +19,7 @@ my $filter;
 ok($filter = $assets->filter([ "Test" ]));
 is($filter->assets, $assets);
 is($filter->cfg->{output}, undef);
-is($filter->stash, undef);
+ok($filter->stash);
 
 ok($assets->filters);
 is(ref $assets->filters, "ARRAY");

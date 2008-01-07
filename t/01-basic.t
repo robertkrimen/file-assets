@@ -39,3 +39,6 @@ is($assets->export, <<_END_);
 <script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
 <link rel="stylesheet" type="text/css" href="http://example.com/static/css/banana.css" />
 _END_
+
+use Test::Memory::Cycle;
+memory_cycle_ok($assets);

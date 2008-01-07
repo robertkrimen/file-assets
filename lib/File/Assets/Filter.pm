@@ -3,7 +3,7 @@ package File::Assets::Filter;
 use strict;
 use warnings;
 
-use Object::Tiny qw/cfg assets where stash/;
+use Object::Tiny qw/cfg assets where/;
 use Digest;
 use Scalar::Util qw/weaken/;
 use Carp::Clan qw/^File::Assets/;
@@ -101,6 +101,10 @@ sub new {
     return $self;
 }
 
+sub stash {
+    return shift->{stash} ||= {};
+}
+
 sub type {
     return shift->where->{type};
 }
@@ -113,11 +117,9 @@ sub begin {
     my $self = shift;
     my $assets = shift;
 
-    $self->{stash} = {
-        assets => $assets,
-        digester => File::Assets::Util->digest,
-        mtime => 0,
-    };
+    $self->stash->{assets} = $assets;
+    $self->stash->{digester} = File::Assets::Util->digest;
+    $self->stash->{mtime} = 0;
 }
 
 sub end {

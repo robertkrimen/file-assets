@@ -104,6 +104,8 @@ sub build_asset_path {
     $output = $filter->output unless defined $output;
     $output = $assets->output unless defined $assets;
 
+    return $$output if ref $output eq "SCALAR";
+
 #   TODO Maybe we should put this here, maybe not
 #    if ($output =~ m/^\//) {
 #    }
@@ -116,8 +118,8 @@ sub build_asset_path {
     $output .= ".%e" if $output =~ m/(?:^|\/)[^.]+$/;
     my $type = $_{type};
     my $extension;
-    $extension = ($type->extensions)[0];
-    $output =~ s/%e/$extension/g;
+    $extension = ($type->extensions)[0] if defined $type;
+    $output =~ s/%e/$extension/g if defined $extension;
     $output =~ s/%D/$_{content_digest}/g if $_{content_digest};
     $output =~ s/%d/$_{digest}/g if $_{digest};
     $output =~ s/%n/$_{name}/g if $_{name};

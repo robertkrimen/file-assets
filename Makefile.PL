@@ -5,6 +5,7 @@ all_from 'lib/File/Assets.pm';
 author   'Robert Krimen <rkrimen@cpan.org>';
 
 build_requires 'Test::More';
+build_requires 'Test::Memory::Cycle';
 build_requires 'Directory::Scratch';
 
 requires 'MIME::Types';
