@@ -5,16 +5,75 @@ use strict;
 
 =head1 NAME
 
-File::Assets -
+File::Assets - Manage .css and .js assets in a web application
 
 =head1 VERSION
 
 Version 0.01
 
+=head1 SYNOPSIS
+
+    use File::Assets
+
+    my $assets = File::Assets->new( base => [ $uri_root, $htdocs_root ] );
+
+    $assets->include("/static/style.css"); # File::Assets will automatically detect the type based on the extension
+
+    # ...
+    
+    $assets->include("/static/main.js");
+    $assets->include("/static/style.css"); # This asset won't get included twice, as File::Assets will ignore repeats of a path
+
+    # Then, in your .tt (Template Toolkit) files:
+
+    [% WRAPPER page.tt %]
+
+    [% assets.include("/static/special-style.css") %]
+
+    # ... finally, in your "main" template:
+
+    [% CLEAR -%]
+    <html>
+
+        <head>
+            [% assets.export("css") %]
+        </head>
+
+        <body>
+
+            [% content %]
+
+            <!-- Generally, you want to include your JavaScript assets at the bottom of your html -->
+
+            [% assets.export("js") %]
+
+        </body>
+
+    </html>
+
+    # ...
+    
+    # If you want to process each asset individually, you can use exports:
+
+    for my $asset ($assets->exports) {
+
+        # ...
+        
+    }
+    
+=head1 DESCRIPTION
+
+File::Assets is a tool for managing JavaScript and CSS assets in a (web) application. It allows you to "publish" assests in one place after having specified them in different parts of the application (e.g. throughout request and template processing phases).
+
+This package has the added bonus of assisting with minification and filtering of assets. Support is built-in for YUI Compressor (L<http://developer.yahoo.com/yui/compressor/>), L<JavaScript::Minifier>, and L<CSS::Minifier>. Filtering is fairly straightforward to implement, so it's a good place to start if need a CSS or JavaScript preprocessor (HAML (L<http://haml.hamptoncatlin.com/>) comes to mind).
+
+File::Assets was built with L<Catalyst> in mind, although this package is framework agnostic.
+
+=head1 METHODS
+
 =cut
 
 our $VERSION = '0.01';
-
 
 use strict;
 use warnings;
@@ -25,6 +84,10 @@ use Object::Tiny qw/registry _registry_hash rsc filters output/;
 use Path::Resource;
 use Scalar::Util qw/blessed refaddr/;
 use Carp::Clan qw/^File::Assets::/;
+
+=head2 File::Assets->new( base => <base> )
+
+=cut
 
 sub new {
     my $self = bless {}, shift;
@@ -48,16 +111,25 @@ sub new {
     return $self;
 }
 
+=head2 $asset = $assets->include(<path>, [ <rank>, <type> ])
+
+=head2 $asset = $assets->include_path(<path>, [ <rank>, <type> ])
+
+Include an asset located at "<base.dir>/<path>" for processing. The asset will be exported as "<base.uri>/<path>".
+
+Optionally, you can specify a rank, where a lower number (i.e. -2, -100) causes the asset to appear earlier in the exports
+list, and a higher number (i.e. 6, 39) causes the asset to appear later in the exports list. By default, all assets start out
+with a neutral rank of 0.
+
+Also optionally, you can specify a type override as the third argument.
+
+Returns the newly created asset.
+
+=cut
+
 sub include {
     my $self = shift;
     return $self->include_path(@_);
-}
-
-sub name {
-    my $self = shift;
-    $self->{name} = shift if @_;
-    my $name = $self->{name};
-    return defined $name && length $name ? $name : "assets";
 }
 
 sub include_path {
@@ -77,31 +149,16 @@ sub include_path {
     return $asset;
 }
 
-sub empty {
-    my $self = shift;
-    return keys %{ $self->_registry_hash } ? 0 : 1;
-}
+=head2 $html = $assets->export([ <type> ])
 
-sub exists {
-    my $self = shift;
-    my $path = shift;
+Generate and return HTML for the assets of <type>. If no type is specified, then assets of every type are exported.
 
-    return exists $self->_registry_hash->{$path};
-}
+$html will be something like this:
 
-sub store {
-    my $self = shift;
-    my $asset = shift;
+    <link rel="stylesheet" type="text/css" href="http://example.com/assets.css">
+    <script src="http://example.com/assets.js" type="text/javascript"></script>
 
-    $self->_registry_hash->{$asset->path} = $asset;
-}
-
-sub fetch {
-    my $self = shift;
-    my $path = shift;
-
-    return $self->_registry_hash->{$path};
-}
+=cut
 
 sub export {
     my $self = shift;
@@ -143,11 +200,84 @@ _END_
     return $html;
 }
 
+=head2 @assets = $assets->exports([ <type> ])
+
+Returns a list of assets, in ranking order, that are exported. If no type is specified, then assets of every type are exported.
+
+You can use this method to generate your own HTML, if necessary.
+
+=cut
+
 sub exports {
     my $self = shift;
     my @assets = sort { $a->rank <=> $b->rank } $self->_exports(@_);
     $self->_filter(\@assets);
     return @assets;
+}
+
+=head2 $assets->empty
+
+Returns 1 if no assets have been included yet, 0 otherwise.
+
+=cut
+
+sub empty {
+    my $self = shift;
+    return keys %{ $self->_registry_hash } ? 0 : 1;
+}
+
+=head2 $assets->exists( <path> )
+
+Returns true if <path> has been included, 0 otherwise.
+
+=cut
+
+sub exists {
+    my $self = shift;
+    my $path = shift;
+
+    return exists $self->_registry_hash->{$path} ? 1 : 0;
+}
+
+=head2 $assets->store( <asset> )
+
+Store <asset> in $assets
+
+=cut
+
+sub store {
+    my $self = shift;
+    my $asset = shift;
+
+    $self->_registry_hash->{$asset->path} = $asset;
+}
+
+=head2 $asset = $assets->fetch( <path> )
+
+Fetch the asset located at <path>
+
+Returns undef if nothing at <path> exists yet.
+
+=cut
+
+sub fetch {
+    my $self = shift;
+    my $path = shift;
+
+    return $self->_registry_hash->{$path};
+}
+
+=head2 $name = $assets->name([ <name> ])
+
+The name of the assets, by default it iss "assets".
+
+=cut
+
+sub name {
+    my $self = shift;
+    $self->{name} = shift if @_;
+    my $name = $self->{name};
+    return defined $name && length $name ? $name : "assets";
 }
 
 sub _exports {
@@ -159,6 +289,12 @@ sub _exports {
     return grep { $type->type eq $_->type->type } values %$hash;
 }
 
+=head2 $assets->fiter( ... )
+
+TBD
+
+=cut
+
 sub filter {
     my $self = shift;
     my $filter = shift;
@@ -166,6 +302,12 @@ sub filter {
     push @{ $self->filters }, $filter;
     return $filter;
 }
+
+=head2 $assets->fiter_clear( ... )
+
+TBD
+
+=cut
 
 sub filter_clear {
     my $self = shift;

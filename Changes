@@ -1,2 +1,6 @@
+TODO:
+ - Complete documentation
+ - More tests for less used parts of File/Assets.pm
+
 Monday January 07 00:29:38 PST 2008:
- - Initial version
+ - Initial release

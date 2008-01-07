@@ -16,6 +16,7 @@ requires 'Tie::LLHash';
 requires 'Digest';
 requires 'Carp::Clan';
 requires 'Object::Tiny';
+requires 'Class::Data::Inheritable';
 
 recommends 'JavaScript::Minifier';
 recommends 'CSS::Minifier';
