@@ -1,4 +1,10 @@
 #!perl -w
+BEGIN {
+    use Test::More;
+    plan skip_all => 'install JavaScript::Minifier and CSS:Minifier to enable this test' and exit unless 
+        eval "require JavaScript::Minifier" &&
+        eval "require CSS::Minifier";
+}
 
 use strict;
 

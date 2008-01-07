@@ -17,6 +17,9 @@ requires 'Digest';
 requires 'Carp::Clan';
 requires 'Object::Tiny';
 
+recommends 'JavaScript::Minifier';
+recommends 'CSS::Minifier';
+
 auto_install;
 
 WriteAll;

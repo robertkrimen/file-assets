@@ -1,4 +1,8 @@
 #!perl -w
+BEGIN {
+    use Test::More;
+    plan skip_all => 'install ./yuicompressor.jar to enable this test' and exit unless -e "./yuicompressor.jar"
+}
 
 use strict;
 

@@ -52,7 +52,7 @@ TODO: {
     "placeholder date/time"       => qr(Date/time)
   );
 
-  module_boilerplate_ok('lib/File/Asset.pm');
+  module_boilerplate_ok('lib/File/Assets.pm');
 
 
 }
