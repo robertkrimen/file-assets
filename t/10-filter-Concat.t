@@ -15,12 +15,13 @@ $assets->include("css/apple.css");
 $assets->include("css/banana.css");
 $assets->include("js/apple.js");
 
-my $digest = "3c19f669dd48b5c16d34e5c00ec3155a";
+my $digest = "b11bf9a77b520852e95af3e0b5c1aa95";
 
-ok($assets->filter([ "concat" => type => ".css", path => '%D.%e', ]));
+ok($assets->filter([ "concat" => type => ".css", output => '%D.%e', ]));
 is($assets->export, <<_END_);
 <link rel="stylesheet" type="text/css" href="http://example.com/static/$digest.css" />
 <script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
 _END_
 
-ok($scratch->exists("$digest.css"));
+ok($scratch->exists("static/$digest.css"));
+ok(-s $scratch->file("static/$digest.css"));

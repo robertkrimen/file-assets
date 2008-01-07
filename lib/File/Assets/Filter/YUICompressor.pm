@@ -25,6 +25,17 @@ sub new {
     -f $self->cfg->{jar} && -r _ or croak "Doesn't exist/can't read: ", $self->cfg->{jar};
     # TODO Test if we can execute "java"
 #    -f $self->cfg->{java} && -x _ or croak "Doesn't exist/can't execute: ", $self->cfg->{java};
+
+    croak "You must specify a type to filter by (either js or css)" unless $self->where->{type};
+
+    if ($self->where->{type}->type eq "text/css") {
+    }
+    elsif ($self->where->{type}->type eq "application/javascript") {
+    }
+    else {
+        carp "Not sure YUI compressor can handle the type: ", $self->where->{type}->type;
+    }
+
     return $self;
 }
 
@@ -48,6 +59,8 @@ sub build_content {
     my $java = $self->cfg->{java};
     my $jar = $self->cfg->{jar};
     my $opt = $self->cfg->{opt};
+
+    $file->parent->mkpath unless -d $file->parent;
 
     open my $yc_io, "| $java -jar $jar --type $extension $opt > $file" or die $!;
     for my $match (@$matched) {

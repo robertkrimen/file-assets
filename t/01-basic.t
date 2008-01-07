@@ -12,9 +12,9 @@ my $assets = File::Assets::Test->assets;
 my $scratch = File::Assets::Test->scratch;
 my $html;
 
-ok(-e $scratch->base->file("css/apple.css"));
-ok(-e $scratch->base->file("css/banana.css"));
-ok(-e $scratch->base->file("js/apple.js"));
+ok(-e $scratch->base->file("static/css/apple.css"));
+ok(-e $scratch->base->file("static/css/banana.css"));
+ok(-e $scratch->base->file("static/js/apple.js"));
 
 ok($assets->include("css/apple.css"));
 ok($assets->include("js/apple.js"));

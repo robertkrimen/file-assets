@@ -3,10 +3,15 @@ package File::Assets::Filter;
 use strict;
 use warnings;
 
-use Object::Tiny qw/cfg group where stash/;
+use Object::Tiny qw/cfg assets where stash/;
 use Digest;
 use Scalar::Util qw/weaken/;
 use Carp::Clan qw/^File::Assets/;
+
+my %default = (qw/
+    /,
+    output => undef,
+);
 
 sub new_parse {
     my $class = shift;
@@ -55,8 +60,8 @@ sub new {
     my $self = $class->SUPER::new;
     local %_ = @_;
 
-    $self->{group} = $_{group};
-    weaken $self->{group};
+    $self->{assets} = $_{assets};
+    weaken $self->{assets};
 
     my $where = $_{where};
     if ($_{type}) {
@@ -87,11 +92,20 @@ sub new {
     }
     $self->{where} = $where;
     $self->{cfg} = {};
+
+    while (my ($setting, $value) = each %default) {
+        $self->cfg->{$setting} = exists $_{$setting} ? $_{$setting} : $value;
+    }
+
     return $self;
 }
 
 sub type {
     return shift->where->{type};
+}
+
+sub output {
+    return shift->cfg->{output};
 }
 
 sub begin {
@@ -144,11 +158,6 @@ sub filter {
     $self->post($assets, \@matched);
 
     $self->end($assets, \@matched);
-}
-
-sub assets {
-    my $self = shift;
-    return $self->stash->{assets};
 }
 
 sub matched {
@@ -205,7 +214,7 @@ sub post {
 
 sub remove {
     my $self = shift;
-    $self->group->filter_clear(filter => $self);
+    $self->assets->filter_clear(filter => $self);
 }
 
 1;

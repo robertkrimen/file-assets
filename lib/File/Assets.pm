@@ -21,7 +21,7 @@ use warnings;
 
 use Tie::LLHash;
 use File::Assets::Asset;
-use Object::Tiny qw/registry _registry_hash name rsc filters/;
+use Object::Tiny qw/registry _registry_hash rsc filters output/;
 use Path::Resource;
 use Scalar::Util qw/blessed refaddr/;
 use Carp::Clan qw/^File::Assets::/;
@@ -42,12 +42,22 @@ sub new {
 
     $self->{filters} = [];
 
+    $self->{name} = $_{name};
+    $self->{output} = $_{output};
+
     return $self;
 }
 
 sub include {
     my $self = shift;
     return $self->include_path(@_);
+}
+
+sub name {
+    my $self = shift;
+    $self->{name} = shift if @_;
+    my $name = $self->{name};
+    return defined $name && length $name ? $name : "assets";
 }
 
 sub include_path {
@@ -58,7 +68,7 @@ sub include_path {
 
     croak "Don't have a path to include" unless defined $path && length $path;
 
-    return if $self->exists($path);
+    return $self->fetch($path) if $self->exists($path);
 
     my $asset = File::Assets::Util->parse_asset_by_path(path => $path, type => $type, rank => $rank, base => $self->rsc);
 
@@ -84,6 +94,13 @@ sub store {
     my $asset = shift;
 
     $self->_registry_hash->{$asset->path} = $asset;
+}
+
+sub fetch {
+    my $self = shift;
+    my $path = shift;
+
+    return $self->_registry_hash->{$path};
 }
 
 sub export {
@@ -145,7 +162,7 @@ sub _exports {
 sub filter {
     my $self = shift;
     my $filter = shift;
-    return unless $filter = File::Assets::Util->parse_filter($filter, @_, group => $self);
+    return unless $filter = File::Assets::Util->parse_filter($filter, @_, assets => $self);
     push @{ $self->filters }, $filter;
     return $filter;
 }
@@ -162,7 +179,7 @@ sub filter_clear {
         }
         if ($_{filter}) {
             my $filter = ref $_{filter} ? refaddr $_{filter} : $_{filter};
-            my @filters = grep { $_{filter} ne refaddr $_ } @{ $self->filters };
+            my @filters = grep { $filter ne refaddr $_ } @{ $self->filters };
             $self->{filters} = \@filters;
         }
     }

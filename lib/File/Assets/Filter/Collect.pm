@@ -16,7 +16,6 @@ my %default = (qw/
         check_age 1 
         check_digest 1
     /,
-    path => "%d.%e",
 );
 
 sub new {
@@ -27,7 +26,7 @@ sub new {
         $self->cfg->{$setting} = exists $_{$setting} ? $_{$setting} : $value;
     }
     $self->cfg->{content_digest} = 1 if $self->cfg->{check_content};
-    $self->cfg->{content_digest} = 1 if $self->cfg->{path} && $self->{cfg}->{path} =~ m/%D/;
+    $self->cfg->{content_digest} = 1 if $self->cfg->{output} && $self->cfg->{output} =~ m/%D/;
     return $self;
 }
 
@@ -109,7 +108,7 @@ sub should_build {
 
     if ($self->cfg->{check_digest}) {
         my $digest = $self->digest;
-        my $dir = $self->group->rsc->dir->subdir(".check-digest");
+        my $dir = $self->assets->rsc->dir->subdir(".check-digest");
         $dir->mkpath unless -d $dir;
         my $file = $dir->file($digest);
         return 1 unless -e $file;
@@ -123,15 +122,17 @@ sub asset {
     my $self = shift;
     return $self->stash->{asset} ||= do {
         my $type = shift || $self->find_type;
-        my $path_template = $self->cfg->{path};
-        my $path = File::Assets::Util->build_asset_path($path_template,
+        my $path = File::Assets::Util->build_asset_path(undef, # $output
+            assets => $self->assets,
+            filter => $self,
+            name => $self->assets->name,
             type => $type,
             digest => $self->digest,
             content_digest => $self->content_digest,
         );
         return File::Assets::Util->parse_asset_by_path(
             path => $path,
-            base => $self->group->rsc,
+            base => $self->assets->rsc,
             type => $type,
         );
     }
@@ -153,7 +154,7 @@ sub build {
 sub replace {
     my $self = shift;
 
-    my $assets = $self->assets;
+    my $assets = $self->stash->{assets};
     my $matched = $self->matched;
     my $top_match = $matched->[0];
     my $top_asset = $top_match->{asset};
@@ -170,7 +171,8 @@ sub find_type {
     my $self = shift;
     my $frob;
     return $frob if $frob = $self->type;
-    return $frob if (($frob = $self->stash->{matched}->[0]) && ($frob = $frob->type));
+    # FIXME Is this a good idea? What happens when you mix types?
+    return $frob if (($frob = $self->stash->{matched}->[0]) && ($frob = $frob->{asset}->type));
     return undef;
 }
 
