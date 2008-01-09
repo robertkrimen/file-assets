@@ -7,6 +7,8 @@ lib/File/Assets.pm
 t/00-load.t
 t/pod-coverage.t
 t/pod.t
+t/04-filter-caching.t
+t/06-new.t
 inc/Module/AutoInstall.pm
 inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm
