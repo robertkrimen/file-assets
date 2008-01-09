@@ -42,3 +42,4 @@ t/boilerplate.t
 t/lib/File/Assets/Filter/Test.pm
 t/lib/File/Assets/Filter/TestCollect.pm
 t/lib/File/Assets/Test.pm
+META.yml

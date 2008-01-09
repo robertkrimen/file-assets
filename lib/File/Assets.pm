@@ -9,7 +9,11 @@ File::Assets - Manage .css and .js assets in a web application
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
+
+=cut
+
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
@@ -19,12 +23,12 @@ Version 0.01
 
     $assets->include("/static/style.css"); # File::Assets will automatically detect the type based on the extension
 
-    # ...
+    # Then, later ...
     
     $assets->include("/static/main.js");
     $assets->include("/static/style.css"); # This asset won't get included twice, as File::Assets will ignore repeats of a path
 
-    # Then, in your .tt (Template Toolkit) files:
+    # And then, in your .tt (Template Toolkit) files:
 
     [% WRAPPER page.tt %]
 
@@ -51,29 +55,24 @@ Version 0.01
 
     </html>
 
-    # ...
-    
     # If you want to process each asset individually, you can use exports:
 
     for my $asset ($assets->exports) {
 
-        # ...
-        
+        print $asset->uri, "\n";
     }
     
 =head1 DESCRIPTION
 
 File::Assets is a tool for managing JavaScript and CSS assets in a (web) application. It allows you to "publish" assests in one place after having specified them in different parts of the application (e.g. throughout request and template processing phases).
 
-This package has the added bonus of assisting with minification and filtering of assets. Support is built-in for YUI Compressor (L<http://developer.yahoo.com/yui/compressor/>), L<JavaScript::Minifier>, and L<CSS::Minifier>. Filtering is fairly straightforward to implement, so it's a good place to start if need a CSS or JavaScript preprocessor (HAML (L<http://haml.hamptoncatlin.com/>) comes to mind).
+This package has the added bonus of assisting with minification and filtering of assets. Support is built-in for YUI Compressor (L<http://developer.yahoo.com/yui/compressor/>), L<JavaScript::Minifier>, and L<CSS::Minifier>. Filtering is fairly straightforward to implement, so it's a good place to start if need a JavaScript or CSS preprocessor (e.g. something like HAML L<http://haml.hamptoncatlin.com/>)
 
 File::Assets was built with L<Catalyst> in mind, although this package is framework agnostic.
 
 =head1 METHODS
 
 =cut
-
-our $VERSION = '0.01';
 
 use strict;
 use warnings;
@@ -86,6 +85,15 @@ use Scalar::Util qw/blessed refaddr/;
 use Carp::Clan qw/^File::Assets::/;
 
 =head2 File::Assets->new( base => <base> )
+
+Create and return a new File::Assets object. <base> can be:
+    
+    An array (list reference) where <base>[0] is a URI object or uri-like string (e.g. "http://www.example.com")
+    and <base>[1] is a Path::Class::Dir object or a dir-like string (e.g. "/var/htdocs")
+
+    A L<URI::ToDisk> object
+
+    A L<Path::Resource> object
 
 =cut
 
@@ -121,7 +129,7 @@ Optionally, you can specify a rank, where a lower number (i.e. -2, -100) causes 
 list, and a higher number (i.e. 6, 39) causes the asset to appear later in the exports list. By default, all assets start out
 with a neutral rank of 0.
 
-Also optionally, you can specify a type override as the third argument.
+Also, optionally, you can specify a type override as the third argument.
 
 Returns the newly created asset.
 

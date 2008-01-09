@@ -1,6 +1,11 @@
 TODO:
- - Complete documentation
- - More tests for less used parts of File/Assets.pm
+ - More documentation!
+ - More tests!
 
-Monday January 07 00:29:38 PST 2008:
+0.02 Tuesday January 08 17:07:41 PST 2008:
+ - Documentation for File::Assets, File::Asset
+ - Testing for File::Assets->new with URI::ToDisk 
+ - Testing for proper caching of generated assets; fixed a couple of bugs
+
+0.01 Monday January 07 00:29:38 PST 2008:
  - Initial release

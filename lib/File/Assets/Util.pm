@@ -54,6 +54,10 @@ sub parse_rsc {
         if ($resource->isa("Path::Resource")) {
             return $resource->clone;
         }
+        elsif ($resource->isa("URI::ToDisk")) {
+            $uri = $resource->URI;
+            $dir = $resource->path;
+        }
         # TODO: URI::ToDisk
     }
     return Path::Resource->new(uri => $uri, dir => $dir, path => $path);

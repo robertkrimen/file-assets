@@ -73,7 +73,10 @@ sub post {
 
     my $build = $self->should_build;
 
-    $self->build if $build;
+    if ($build) {
+        $self->check_digest_file->touch;
+        $self->build;
+    }
 
     $self->replace;
 }
@@ -97,7 +100,10 @@ sub should_build {
         my $digest = $self->content_digest;
         my $dir = $self->group->rsc->dir->subdir(".check-content-digest");
         my $file = $dir->file($digest);
-        return 1 unless -e $file;
+        unless (-e $file) {
+            $file->touch;
+            return 1;
+        }
         $file->touch;
     }
 
@@ -107,15 +113,22 @@ sub should_build {
     }
 
     if ($self->cfg->{check_digest}) {
-        my $digest = $self->digest;
-        my $dir = $self->assets->rsc->dir->subdir(".check-digest");
-        $dir->mkpath unless -d $dir;
-        my $file = $dir->file($digest);
-        return 1 unless -e $file;
-        $file->touch;
+        my $file = $self->check_digest_file;
+        unless (-e $file) {
+            return 1;
+        }
     }
 
     return 0;
+}
+
+sub check_digest_file {
+    my $self = shift;
+    my $digest = $self->digest;
+    my $dir = $self->assets->rsc->dir->subdir(".check-digest");
+    $dir->mkpath unless -d $dir;
+    my $file = $dir->file($digest);
+    return $file;
 }
 
 sub asset {
