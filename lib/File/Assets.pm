@@ -88,12 +88,12 @@ use Carp::Clan qw/^File::Assets::/;
 
 Create and return a new File::Assets object. <base> can be:
     
-    An array (list reference) where <base>[0] is a URI object or uri-like string (e.g. "http://www.example.com")
-    and <base>[1] is a Path::Class::Dir object or a dir-like string (e.g. "/var/htdocs")
+* An array (list reference) where <base>[0] is a URI object or uri-like string (e.g. "http://www.example.com")
+and <base>[1] is a Path::Class::Dir object or a dir-like string (e.g. "/var/htdocs")
 
-    A L<URI::ToDisk> object
+* A L<URI::ToDisk> object
 
-    A L<Path::Resource> object
+* A L<Path::Resource> object
 
 =cut
 
@@ -297,25 +297,13 @@ sub _exports {
     return grep { $type->type eq $_->type->type } values %$hash;
 }
 
-=head2 $assets->fiter( ... )
-
-TBD
-
-=cut
-
 sub filter {
     my $self = shift;
-    my $filter = shift;
-    return unless $filter = File::Assets::Util->parse_filter($filter, @_, assets => $self);
+    my $_filter = shift;
+    croak "Couldn't find filter for ($_filter)"  unless my $filter = File::Assets::Util->parse_filter($_filter, @_, assets => $self);
     push @{ $self->filters }, $filter;
     return $filter;
 }
-
-=head2 $assets->fiter_clear( ... )
-
-TBD
-
-=cut
 
 sub filter_clear {
     my $self = shift;

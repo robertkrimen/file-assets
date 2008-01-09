@@ -2,6 +2,9 @@ TODO:
  - More documentation!
  - More tests!
 
+0.021 Tuesday January 08 21:22:31 PST 2008:
+ - Small documentation fixes 
+
 0.02 Tuesday January 08 17:07:41 PST 2008:
  - Documentation for File::Assets, File::Asset
  - Testing for File::Assets->new with URI::ToDisk 

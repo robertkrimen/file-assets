@@ -75,7 +75,7 @@ sub uri {
     return $self->rsc->uri;
 }
 
-=head2 $asset->uri 
+=head2 $asset->file 
 
 Returns a L<Path::Class::File> object represting the file for $asset
 
