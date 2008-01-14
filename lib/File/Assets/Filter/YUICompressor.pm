@@ -30,7 +30,9 @@ sub new {
 
     if ($self->where->{type}->type eq "text/css") {
     }
-    elsif ($self->where->{type}->type eq "application/javascript") {
+    elsif ($self->where->{type}->type eq "application/javascript" ||
+        $self->where->{type}->type eq "application/x-javascript" || # Handle different MIME::Types versions.
+        $self->where->{type}->type =~ m/\bjavascript\b/) {
     }
     else {
         carp "Not sure YUI compressor can handle the type: ", $self->where->{type}->type;

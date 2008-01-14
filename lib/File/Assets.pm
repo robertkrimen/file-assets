@@ -194,11 +194,14 @@ sub _export_html {
 <link rel="stylesheet" type="text/css" href="@{[ $asset->uri ]}" />
 _END_
         }
-        elsif ($asset->type->type eq "application/javascript") {
+        elsif ($asset->type->type eq "application/javascript" ||
+                $asset->type->type eq "application/x-javascript" || # Handle different MIME::Types versions.
+                $asset->type->type =~ m/\bjavascript\b/) {
             $html .= <<_END_;
 <script src="@{[ $asset->uri ]}" type="text/javascript"></script>
 _END_
         }
+
         else {
             $html .= <<_END_;
 <link type="@{[ $asset->type->type ]}" href="@{[ $asset->uri ]}" />
@@ -381,7 +384,7 @@ L<http://search.cpan.org/dist/File-Assets>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2008 Robert Krimen, all rights reserved.
+Copyright 2008 Robert Krimen
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

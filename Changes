@@ -2,6 +2,9 @@ TODO:
  - More documentation!
  - More tests!
 
+0.030 Sunday January 13 23:23:34 PST 2008:
+ - Fixed "x-javascript" issue for MIME::Types older than 1.16 (rep. ITEGEBO)
+
 0.021 Tuesday January 08 21:22:31 PST 2008:
  - Small documentation fixes 
 

@@ -1,7 +1,7 @@
 #!perl -T
 BEGIN {
     use Test::More;
-    plan skip_all => 'set TEST_AUTHOR or TEST_POD to enable this test' and exit unless $ENV{TEST_AUTHOR} || $ENV{TEST_POD} || $ENV{TEST_ALL};
+    plan skip_all => 'set TEST_AUTHOR to enable this test' and exit unless $ENV{TEST_AUTHOR};
 }
 
 use strict;
