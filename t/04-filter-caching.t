@@ -21,7 +21,7 @@ is($assets->export, <<_END_);
 <link rel="stylesheet" type="text/css" href="http://example.com/$path" />
 _END_
 
-sleep 1;
+sleep 2;
 
 is($scratch->read($path), <<_END_);
 /* Test file: static/css/apple.css */
@@ -58,7 +58,7 @@ ok($mtime = $scratch->file($path)->stat->mtime);
 ok($assets->export);
 is($scratch->file($path)->stat->mtime, $mtime, "Again, nothing changed, so $path should have an mtime $mtime");
 
-sleep 1;
+sleep 2;
 
 $scratch->write("static/js/custom.js", <<_END_);
 /* This is a different custom.js */

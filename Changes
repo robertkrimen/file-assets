@@ -1,6 +1,10 @@
 TODO:
- - More documentation!
- - More tests!
+ - Allow extra attributes to be associated with assets
+ - Implement css media functionality
+ - More documentation
+
+0.031 Tuesday January 22 13:46:39 PST 2008:
+ - Fixed (hopefully) some broken tests (rep. RENEEB)
 
 0.030 Sunday January 13 23:23:34 PST 2008:
  - Fixed "x-javascript" issue for MIME::Types older than 1.16 (rep. ITEGEBO)
