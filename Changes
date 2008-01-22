@@ -3,6 +3,9 @@ TODO:
  - Implement css media functionality
  - More documentation
 
+0.032 Tuesday January 22 14:01:12 PST 2008:
+ - Some minor tweaking of the timing of the caching test
+
 0.031 Tuesday January 22 13:46:39 PST 2008:
  - Fixed (hopefully) some broken tests (rep. RENEEB)
 

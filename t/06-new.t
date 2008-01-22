@@ -11,7 +11,7 @@ use File::Assets::Test;
 my $scratch = File::Assets::Test->scratch;
 
 SKIP: {
-    skip "URI::ToDisk is not installed" unless eval "require URI::ToDisk";
+    skip "URI::ToDisk is not installed" unless eval "require URI::ToDisk;";
 
     my $assets = File::Assets->new(base => URI::ToDisk->new($scratch->base, "http://www.example.com/assets"));
     my $asset = $assets->include("static/css/apple.css");
