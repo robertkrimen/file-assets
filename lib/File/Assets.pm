@@ -157,6 +157,19 @@ sub include_path {
     return $asset;
 }
 
+sub include_content {
+    my $self = shift;
+    my $content = shift;
+    my $type = shift;
+    my $rank = shift;
+
+    my $asset = File::Assets::Util->parse_asset_by_content(content => $content, type => $type, rank => $rank);
+
+    $self->store($asset);
+
+    return $asset;
+}
+
 =head2 $html = $assets->export([ <type> ])
 
 Generate and return HTML for the assets of <type>. If no type is specified, then assets of every type are exported.
@@ -190,19 +203,30 @@ sub _export_html {
     my $html = "";
     for my $asset (@$assets) {
         if ($asset->type->type eq "text/css") {
-            $html .= <<_END_;
+            if ($asset->external) {
+                $html .= <<_END_;
 <link rel="stylesheet" type="text/css" href="@{[ $asset->uri ]}" />
 _END_
+            }
+            else {
+                $html .= "<style type=\"text/css\">\n" . ${ $asset->content } . "\n</style>\n";
+            }
         }
         elsif ($asset->type->type eq "application/javascript" ||
                 $asset->type->type eq "application/x-javascript" || # Handle different MIME::Types versions.
                 $asset->type->type =~ m/\bjavascript\b/) {
-            $html .= <<_END_;
+            if ($asset->external) {
+                $html .= <<_END_;
 <script src="@{[ $asset->uri ]}" type="text/javascript"></script>
 _END_
+            }
+            else {
+                $html .= "<script type=\"text/javascript\">\n" . ${ $asset->content } . "\n</script>\n";
+            }
         }
 
         else {
+            croak "Don't know how to handle asset $asset" unless $asset->external;
             $html .= <<_END_;
 <link type="@{[ $asset->type->type ]}" href="@{[ $asset->uri ]}" />
 _END_
@@ -260,7 +284,7 @@ sub store {
     my $self = shift;
     my $asset = shift;
 
-    $self->_registry_hash->{$asset->path} = $asset;
+    $self->_registry_hash->{$asset->key} = $asset;
 }
 
 =head2 $asset = $assets->fetch( <path> )
@@ -273,14 +297,14 @@ Returns undef if nothing at <path> exists yet.
 
 sub fetch {
     my $self = shift;
-    my $path = shift;
+    my $key = shift;
 
-    return $self->_registry_hash->{$path};
+    return $self->_registry_hash->{$key};
 }
 
 =head2 $name = $assets->name([ <name> ])
 
-The name of the assets, by default it iss "assets".
+The name of the assets, by default it is "assets".
 
 =cut
 

@@ -9,6 +9,8 @@ use Module::Pluggable search_path => q/File::Assets::Filter/, require => 1, sub_
 my @filters = reverse sort  __PACKAGE__->filter_load();
 use Carp::Clan qw/^File::Assets/;
 use Digest;
+use File::Assets::Asset::File;
+use File::Assets::Asset::Content;
 
 {
     my $types;
@@ -67,11 +69,14 @@ sub parse_asset_by_path {
     my $class = shift;
     local %_ = @_;
 
-    return File::Assets::Asset->new(%_);
+    return File::Assets::Asset::File->new(%_);
 }
 
 sub parse_asset_by_content {
-    croak "Not ready yet"
+    my $class = shift;
+    local %_ = @_;
+
+    return File::Assets::Asset::Content->new(%_);
 }
 
 sub parse_filter {
