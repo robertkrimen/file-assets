@@ -32,6 +32,22 @@ sub parse_name {
     return $name;
 }
 
+sub same_type {
+    my $class = shift;
+    my $aa = $class->parse_type($_[0]);
+    my $bb = $class->parse_type($_[1]);
+    croak "Couldn't parse @_" unless $aa && $bb;
+    
+    return $aa->simplified eq $bb->simplified;
+}
+
+sub type_extension {
+    my $class = shift;
+    my $type = $class->parse_type($_[0]);
+    croak "Couldn't parse @_" unless $type;
+    return ($type->extensions)[0];
+}
+
 sub parse_type {
     my $class = shift;
     my $type = shift;
@@ -63,20 +79,6 @@ sub parse_rsc {
         # TODO: URI::ToDisk
     }
     return Path::Resource->new(uri => $uri, dir => $dir, path => $path);
-}
-
-sub parse_asset_by_path {
-    my $class = shift;
-    local %_ = @_;
-
-    return File::Assets::Asset::File->new(%_);
-}
-
-sub parse_asset_by_content {
-    my $class = shift;
-    local %_ = @_;
-
-    return File::Assets::Asset::Content->new(%_);
 }
 
 sub parse_filter {

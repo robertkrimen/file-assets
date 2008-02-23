@@ -21,6 +21,7 @@ sub new {
     $self->{rank} = $rank ? $rank : 0;
     $self->{mtime} = 0;
     $self->{uuid} = $ug->create_hex;
+    $self->{attributes} = {};
     return $self;
 }
 

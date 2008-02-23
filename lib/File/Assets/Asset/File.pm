@@ -62,6 +62,7 @@ sub new {
     croak "Don't understand rank ($rank)" if $rank && $rank =~ m/[^\d\+\-\.]/;
     $self->{rank} = $rank ? $rank : 0;
     $self->{mtime} = 0;
+    $self->{attributes} = {};
     return $self;
 }
 

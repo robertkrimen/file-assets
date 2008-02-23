@@ -81,6 +81,8 @@ use Tie::LLHash;
 use File::Assets::Asset;
 use Object::Tiny qw/registry _registry_hash rsc filters output/;
 use Path::Resource;
+use File::Assets::Kind;
+use File::Assets::Bucket;
 use Scalar::Util qw/blessed refaddr/;
 use Carp::Clan qw/^File::Assets::/;
 
@@ -150,7 +152,7 @@ sub include_path {
 
     return $self->fetch($path) if $self->exists($path);
 
-    my $asset = File::Assets::Util->parse_asset_by_path(path => $path, type => $type, rank => $rank, base => $self->rsc);
+    my $asset = File::Assets::Asset::File->new(path => $path, type => $type, rank => $rank, base => $self->rsc);
 
     $self->store($asset);
 
@@ -163,7 +165,7 @@ sub include_content {
     my $type = shift;
     my $rank = shift;
 
-    my $asset = File::Assets::Util->parse_asset_by_content(content => $content, type => $type, rank => $rank);
+    my $asset = File::Assets::Asset::Content->new(content => $content, type => $type, rank => $rank, base => $self->rsc);
 
     $self->store($asset);
 
@@ -203,13 +205,14 @@ sub _export_html {
     my $html = "";
     for my $asset (@$assets) {
         if ($asset->type->type eq "text/css") {
+            my $media = $asset->attributes->{media} || "screen";
             if ($asset->external) {
                 $html .= <<_END_;
-<link rel="stylesheet" type="text/css" href="@{[ $asset->uri ]}" />
+<link rel="stylesheet" type="text/css" media="$media" href="@{[ $asset->uri ]}" />
 _END_
             }
             else {
-                $html .= "<style type=\"text/css\">\n" . ${ $asset->content } . "\n</style>\n";
+                $html .= "<style media=\"$media\" type=\"text/css\">\n" . ${ $asset->content } . "\n</style>\n";
             }
         }
         elsif ($asset->type->type eq "application/javascript" ||
@@ -246,7 +249,6 @@ You can use this method to generate your own HTML, if necessary.
 sub exports {
     my $self = shift;
     my @assets = sort { $a->rank <=> $b->rank } $self->_exports(@_);
-    $self->_filter(\@assets);
     return @assets;
 }
 
@@ -315,14 +317,69 @@ sub name {
     return defined $name && length $name ? $name : "assets";
 }
 
+sub kind {
+    my $self = shift;
+    my $asset = shift;
+    my $type = $asset->type;
+
+    my $kind = File::Assets::Util->type_extension($type);
+    if (File::Assets::Util->same_type("css", $type)) {
+        my $media = $asset->attributes->{media} || "screen"; # W3C says to assume screen by default, so we'll do the same.
+        $kind = "$kind-$media";
+    }
+
+    return File::Assets::Kind->new($kind, $type);
+}
+
 sub _exports {
     my $self = shift;
     my $type = shift;
     $type = File::Assets::Util->parse_type($type);
     my $hash = $self->_registry_hash;
-    return values %$hash unless defined $type;
-    return grep { $type->type eq $_->type->type } values %$hash;
+    my @assets; 
+    if (defined $type) {
+        @assets = grep { $type->type eq $_->type->type } values %$hash;
+    }
+    else {
+        @assets = values %$hash;
+    }
+
+    my %bucket;
+    for my $asset (@assets) {
+        my $kind = $self->kind($asset);
+        my $bucket = $bucket{$kind->kind} ||= File::Assets::Bucket->new($kind);
+        $bucket->add_asset($asset);
+    }
+
+    my @filters = @{ $self->{filters} };
+    while (my ($kind, $bucket) = each %bucket) {
+        for my $filter (@filters) {
+            $bucket->add_filter($filter) if $filter->fit($bucket);
+        }
+    }
+
+    return map { $_->exports } values %bucket; # Mmmm... "values bucket" ...time for some KFC
 }
+
+=pod
+
+    if ($filter->fit($bucket)) {
+        $bucket->add($filter);
+    }
+
+    ...
+
+    my %filter;
+    my $filter = $filter{$new_filter->signature};
+    if (! $filter || $new_filter->is_more_specific_than($filter)) {
+        # Replace the filter
+    }
+
+    ...
+
+    _get_writer_path
+
+=cut
 
 sub filter {
     my $self = shift;
