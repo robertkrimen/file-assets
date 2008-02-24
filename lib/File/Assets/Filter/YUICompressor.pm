@@ -6,6 +6,10 @@ use warnings;
 use base qw/File::Assets::Filter::Collect/;
 use Carp::Clan qw/^File::Assets/;
 
+sub signature {
+    return "yuicompressor";
+}
+
 my %default = (qw/
         java java
     /,
@@ -26,17 +30,17 @@ sub new {
     # TODO Test if we can execute "java"
 #    -f $self->cfg->{java} && -x _ or croak "Doesn't exist/can't execute: ", $self->cfg->{java};
 
-    croak "You must specify a type to filter by (either js or css)" unless $self->where->{type};
+#    croak "You must specify a type to filter by (either js or css)" unless $self->where->{type};
 
-    if ($self->where->{type}->type eq "text/css") {
-    }
-    elsif ($self->where->{type}->type eq "application/javascript" ||
-        $self->where->{type}->type eq "application/x-javascript" || # Handle different MIME::Types versions.
-        $self->where->{type}->type =~ m/\bjavascript\b/) {
-    }
-    else {
-        carp "Not sure YUI compressor can handle the type: ", $self->where->{type}->type;
-    }
+#    if ($self->where->{type}->type eq "text/css") {
+#    }
+#    elsif ($self->where->{type}->type eq "application/javascript" ||
+#        $self->where->{type}->type eq "application/x-javascript" || # Handle different MIME::Types versions.
+#        $self->where->{type}->type =~ m/\bjavascript\b/) {
+#    }
+#    else {
+#        carp "Not sure YUI compressor can handle the type: ", $self->where->{type}->type;
+#    }
 
     return $self;
 }
@@ -54,9 +58,9 @@ sub build_content {
     my $self = shift;
 
     my $matched = $self->matched;
-    my $asset = $self->asset;
-    my $file = $asset->file;
-    my $extension = ($asset->type->extensions)[0];
+    my $output_asset = $self->output_asset;
+    my $file = $output_asset->file;
+    my $extension = $self->kind->extension;
 
     my $java = $self->cfg->{java};
     my $jar = $self->cfg->{jar};

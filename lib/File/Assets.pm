@@ -392,6 +392,11 @@ sub _exports {
 
 =cut
 
+sub set_output_path_scheme {
+    my $self = shift;
+    $self->{output_path_scheme} = shift;
+}
+
 sub filter {
     my $self = shift;
     my ($kind, $filter);
@@ -407,17 +412,28 @@ sub filter {
 
     my $category = $self->{filter_scheme}->{$name} ||= [];
 
-    # TODO Create filter...
+    my $_filter = $filter;
+    unless (blessed $_filter) {
+        croak "Couldn't find filter for ($filter)"  unless $_filter = File::Assets::Util->parse_filter($_filter, @_, assets => $self);
+    }
 
-    push @$category, $filter;
+    push @$category, $_filter;
 
-#    croak "Couldn't find filter for ($_filter)"  unless my $filter = File::Assets::Util->parse_filter($_filter, @_, assets => $self);
-
-}
+    return $_filter;
+} 
 
 sub filter_clear {
     my $self = shift;
-    croak __PACKAGE__, "::filter_clear is deprecated, nothing happens"
+    if (blessed $_[0] && $_[0]->isa("File::Assets::Filter")) {
+        my $target = shift;
+        while (my ($name, $category) = each %{ $self->{filter_scheme} }) {
+            my @filters = grep { $_ != $target } @$category;
+            $self->{filter_scheme}->{$name} = \@filters;
+        }
+        return;
+    }
+    carp __PACKAGE__, "::filter_clear(\$type) is deprecated, nothing happens" and return if @_;
+    $self->{filter_scheme} = {};
 }
 
 sub _calculate_best {
@@ -448,7 +464,7 @@ sub _calculate_best {
                 $result = 1;
                 $best_kind = $kind;
             }
-            elsif ($condition eq "default") {
+            elsif ($condition eq "*" || $condition eq "default") {
                 $result = $best_kind ? -1 : 1; 
             }
         }
@@ -462,14 +478,16 @@ sub _calculate_best {
             # Signature doesn't match or is not a wildcard, so move on to the next rule
             next if defined $condition_signature && $condition_signature ne '*' && $condition_signature ne $signature;
 
-            $condition_kind = File::Assets::Kind->new($condition_kind);
+            if (length $condition_kind && $condition_kind ne '*') {
+                $condition_kind = File::Assets::Kind->new($condition_kind);
 
-            # Type isn't the same as the asset (or whatever) kind, so move on to the next rule
-            next unless File::Assets::Util->same_type($condition_kind->type, $kind->type);
+                # Type isn't the same as the asset (or whatever) kind, so move on to the next rule
+                next unless File::Assets::Util->same_type($condition_kind->type, $kind->type);
+            }
         }
 
         # At this point, we have a match, but is it a better match then one we already have?
-        if (! $best_kind || ($condition_kind->is_better_than($best_kind))) {
+        if (! $best_kind || ($condition_kind && $condition_kind->is_better_than($best_kind))) {
             $result = 1;
         }
 

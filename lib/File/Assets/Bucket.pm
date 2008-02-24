@@ -46,7 +46,7 @@ sub exports {
     for my $entry (@$filters) {
         $entry->[1]->filter(\@assets, $self, $self->assets);
     }
-    return grep { ! $_->hidden } $self->all;
+    return @assets;
 }
 
 sub clear {

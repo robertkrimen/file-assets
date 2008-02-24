@@ -4,10 +4,11 @@ use strict;
 use warnings;
 
 use Object::Tiny qw/kind type head tail/;
+use Carp;
 
 sub new {
     my $self = bless {}, shift;
-    $self->{kind} = my $kind = shift;
+    confess "Uhh, whut?" unless $self->{kind} = my $kind = shift;
     my @kind = split m/-/, $kind, 2;
     my $type = shift;
     unless ($type) {

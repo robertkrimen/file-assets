@@ -117,8 +117,8 @@ sub build_output_path {
 #        $output = $assets->path->child($output);
 #    }
 
-    $path = "%n-%k.%e" unless $path;
-    $path .= "%n-%k.%e" if $path && $path =~ m/\/$/;
+    $path = "%n%b.%e" unless $path;
+    $path .= "%n%b.%e" if $path && $path =~ m/\/$/;
     $path .= ".%e" if $path =~ m/(?:^|\/)[^.]+$/;
 
     local %_ = (
@@ -136,9 +136,15 @@ sub build_output_path {
     $path =~ s/%n/$_{name}/g if $_{name};
     $path =~ s/%k/$_{kind}/g if $_{kind};
     $path =~ s/%h/$_{head}/g if $_{head};
-    $path =~ s/%a/$_{tail}/g if $_{tail};
+    $_{tail} = "" unless defined $_{tail};
+    $path =~ s/%a/$_{tail}/g;
+    my $tail = $_{tail};
+    $tail = "-$tail" if length $tail;
+    $path =~ s/%b/$tail/g;
 
-    $path =~ m/(?<!%)%[eDdnkha]/ and croak "Unmatched substitution in output path pattern ($path)";
+    $path =~ m/(?<!%)%[D]/ and carp "Unmatched content digest substitution %D in output path pattern ($path)\n" .
+                                        "Did you forget to set \"content_digest => 1\" in the filter?";
+    $path =~ m/(?<!%)%[eDdnkhab]/ and carp "Unmatched substitution in output path pattern ($path)";
 
     $path =~ s/%%/%/g;
 

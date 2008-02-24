@@ -39,7 +39,7 @@ sub new {
         $self->cfg->{$setting} = exists $_{$setting} ? $_{$setting} : $value;
     }
     $self->cfg->{content_digest} = 1 if $self->cfg->{check_content};
-    $self->cfg->{content_digest} = 1 if $self->cfg->{output} && $self->cfg->{output} =~ m/%D/;
+    # TODO Set content_digest if output_path is 1?
     return $self;
 }
 
@@ -74,11 +74,11 @@ sub post {
 
     return unless @$matched;
 
-#    return if $self->cfg->{skip_single} && 1 == @$matched;
+    return if $self->cfg->{skip_single} && 1 == @$matched;
 
-#    if (my $digester = $self->content_digester) {
-#        $self->content_digest($digester->hexdigest);
-#    }
+    if (my $digester = $self->content_digester) {
+        $self->content_digest($digester->hexdigest);
+    }
 
 #    my $type = $self->find_type;
 
@@ -169,35 +169,42 @@ sub build {
 
     my $content = $self->build_content;
 
-#    $self->asset->write($content) if defined $content;
-    my $output_asset = $self->assets->output_asset($self);
+    my $output_asset = $self->output_asset;
+
     $output_asset->write($content) if defined $content;
 
     return $output_asset;
+}
+
+sub output_asset {
+    my $self = shift;
+    return $self->stash->{output_asset} ||= do {
+        $self->assets->output_asset($self);
+    };
 }
 
 sub substitute {
     my $self = shift;
     my $asset = shift;
 
-#    my $assets = $self->stash->{assets};
-#    my $matched = $self->matched;
-#    my $top_match = $matched->[0];
-#    my $top_asset = $top_match->{asset};
-
-#    for my $match (reverse @$matched) {
-#        my $rank = $match->{rank};
-#        splice @$assets, $rank, 1, ();
-#    }
-
-#    splice @$assets, $top_match->{rank}, 0, $self->asset; 
-
+    my $slice = $self->slice;
     my $matched = $self->matched;
-    for my $match (@$matched) {
-        $match->{asset}->hide;
+    my $top_match = $matched->[0];
+    my $top_asset = $top_match->{asset};
+
+    for my $match (reverse @$matched) {
+        my $rank = $match->{rank};
+        splice @$slice, $rank, 1, ();
     }
 
-    $self->bucket->add_asset($asset);
+    splice @$slice, $top_match->{rank}, 0, $asset; 
+
+#    my $matched = $self->matched;
+#    for my $match (@$matched) {
+#        $match->{asset}->hide;
+#    }
+#
+#    $self->bucket->add_asset($asset);
 }
 
 sub find_type {

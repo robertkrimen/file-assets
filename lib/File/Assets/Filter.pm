@@ -198,7 +198,8 @@ sub post {
 
 sub remove {
     my $self = shift;
-    $self->assets->filter_clear(filter => $self);
+    carp __PACKAGE__, "::remove() is deprecated, nothing happens";
+    return;
 }
 
 sub kind {
