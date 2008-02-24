@@ -69,7 +69,6 @@ sub post {
     my $self = shift;
     $self->SUPER::post(@_);
 
-#    my $assets = shift;
     my $matched = $self->matched;
 
     return unless @$matched;
@@ -82,16 +81,16 @@ sub post {
 
 #    my $type = $self->find_type;
 
-#    return if $self->skip_if_exists;
+    return if $self->skip_if_exists;
 
-#    my $build = $self->should_build;
+    my $build = $self->should_build;
 
-    my $build = 1;
     if ($build) {
-#        $self->check_digest_file->touch;
-        my $asset = $self->build;
-        $self->substitute($asset);
+        $self->check_digest_file->touch;
+        $self->build;
     }
+
+    $self->substitute;
 }
 
 sub skip_if_exists {
@@ -122,7 +121,7 @@ sub should_build {
 
     if ($self->cfg->{check_age}) {
         my $mtime = $self->mtime;
-        return 1 if $mtime > $self->asset->mtime;
+        return 1 if $mtime > $self->output_asset->mtime;
     }
 
     if ($self->cfg->{check_digest}) {
@@ -185,7 +184,7 @@ sub output_asset {
 
 sub substitute {
     my $self = shift;
-    my $asset = shift;
+    my $asset = shift || $self->output_asset;
 
     my $slice = $self->slice;
     my $matched = $self->matched;

@@ -106,7 +106,8 @@ sub build_output_path {
     my $template = shift;
     my $filter = shift;
 
-    my $path = $template->{path};
+    my $path = $template;
+    $path = $path->{path} if ref $path eq "HASH";
 
     return $$path if ref $path eq "SCALAR";
 
@@ -121,16 +122,23 @@ sub build_output_path {
     $path .= "%n%b.%e" if $path && $path =~ m/\/$/;
     $path .= ".%e" if $path =~ m/(?:^|\/)[^.]+$/;
 
-    local %_ = (
-        content_digest => $filter->content_digest,
-        digest => $filter->digest,
-        name => $filter->assets->name,
-        kind => $filter->kind->kind,
-        head => $filter->kind->head,
-        tail => $filter->kind->tail,
-    );
-    my $extension = $filter->kind->extension;
-    $path =~ s/%e/$extension/g if defined $extension;
+    local %_;
+    if (ref $filter eq "HASH") {
+        %_ = %$filter;
+    }
+    else {
+        %_ = (
+            content_digest => $filter->content_digest,
+            digest => $filter->digest,
+            name => $filter->assets->name,
+            kind => $filter->kind->kind,
+            head => $filter->kind->head,
+            tail => $filter->kind->tail,
+            extension => $filter->kind->extension,
+        );
+    }
+
+    $path =~ s/%e/$_{extension}/g if $_{extension};
     $path =~ s/%D/$_{content_digest}/g if $_{content_digest};
     $path =~ s/%d/$_{digest}/g if $_{digest};
     $path =~ s/%n/$_{name}/g if $_{name};

@@ -448,7 +448,7 @@ sub _calculate_best {
 
     my ($best_kind, %return);
     %return = %$default if $default;
-    
+
     # TODO Cache the result of this
     for my $rule (@$scheme) {
         my ($condition, $action, $flags) = @$rule;

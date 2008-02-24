@@ -44,13 +44,13 @@ sub new {
         else {
             $self->{rsc} = $base->child($path);
         }
-        $self->{type} = File::Assets::Util->parse_type($type) ||
+        $self->{type} = $type || File::Assets::Util->parse_type($type) ||
             File::Assets::Util->parse_type($path) or 
             croak "Don't know type for asset ($path)";
         $self->{content} = $content if $content;
     }
     elsif ($base && $content) {
-        $self->{type} = File::Assets::Util->parse_type($type) or
+        $self->{type} = $type || File::Assets::Util->parse_type($type) or
             croak "Don't know type for asset ($path)";
         $self->{content} = $content;
         my $path = File::Assets::Util->build_asset_path(undef, type => $type, content_digest => $self->content_digest);

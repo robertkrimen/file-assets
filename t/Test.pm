@@ -60,6 +60,9 @@ _END_
 
 }());
 _END_
+        'static/css/grape.css' => <<_END_,
+/* This is grape.css */
+_END_
     });
 
     return $self;
