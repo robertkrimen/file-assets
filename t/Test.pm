@@ -16,8 +16,9 @@ sub scratch {
 
 my $assets;
 sub assets {
+    shift;
     memory_cycle_ok($assets) if $assets;
-    return $assets = File::Assets->new(base => [ "http://example.com/", scratch->base, "/static" ]);
+    return $assets = File::Assets->new(base => [ "http://example.com/", scratch->base, "/static" ], @_);
 }
 
 END {

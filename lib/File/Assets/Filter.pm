@@ -3,15 +3,35 @@ package File::Assets::Filter;
 use strict;
 use warnings;
 
-use Object::Tiny qw/cfg assets where signature/;
+use Object::Tiny qw/cfg where signature/;
 use Digest;
 use Scalar::Util qw/weaken/;
 use Carp::Clan qw/^File::Assets/;
 
+for my $ii (qw/matched digest digester mtime assets bucket slice/) {
+    no strict 'refs';
+    *$ii = sub {
+        my $self = shift;
+        return $self->stash->{$ii} unless @_;
+        return $self->stash->{$ii} = shift;
+    };
+}
+
 sub new {
     my $self = bless {}, shift;
+    local %_ = @_;
+    my $fit = $_{fit}; # Actually should just be a kind object or undef, for now
+    $fit = $self->{fit} = File::Assets::Kind->new($fit) if $fit && ! ref $fit;
     $self->{cfg} = {};
     return $self;
+}
+
+sub fit {
+    my $self = shift;
+    my $bucket = shift;
+
+    return 1 unless $self->{fit};
+    return 1 if $bucket->kind->is_better_than_or_equal($self->{fit});
 }
 
 sub stash {
@@ -28,8 +48,12 @@ sub output {
 
 sub begin {
     my $self = shift;
+    my $slice = shift;
+    my $bucket = shift;
     my $assets = shift;
 
+    $self->stash->{slice} = $slice;
+    $self->stash->{bucket} = $bucket;
     $self->stash->{assets} = $assets;
     $self->stash->{digester} = File::Assets::Util->digest;
     $self->stash->{mtime} = 0;
@@ -42,20 +66,22 @@ sub end {
 
 sub filter {
     my $self = shift;
+    my $slice = shift;
+    my $bucket = shift;
     my $assets = shift;
 
-    $self->begin($assets);
+    $self->begin($slice, $bucket, $assets);
 
-    return unless $self->pre($assets);
+    return unless $self->pre;
 
     my @matched;
-    $self->stash->{matched} = \@matched;
+    $self->matched(\@matched);
 
-    my $digester = $self->{stash}->{digester};
+    my $digester = $self->digester;
 
     my $count = 0;
-    for (my $rank = 0; $rank < @$assets; $rank++) {
-        my $asset = $assets->[$rank];
+    for (my $rank = 0; $rank < @$slice; $rank++) {
+        my $asset = $slice->[$rank];
 
         next unless $self->_match($asset);
 
@@ -65,47 +91,32 @@ sub filter {
         $digester->add($asset->digest."\n");
 
         my $asset_mtime = $asset->mtime;
-        $self->stash->{mtime} = $asset_mtime if $asset_mtime >= $self->mtime;
+        $self->mtime($asset_mtime) if $asset_mtime >= $self->mtime;
 
-        $self->process($asset, $rank, $count, scalar @$assets, $assets);
+        $self->process($asset, $rank, $count, scalar @$slice, $slice);
     }
-    $self->stash->{digest} = $digester->hexdigest;
+    $self->digest($digester->hexdigest);
 
-    $self->post($assets, \@matched);
+    $self->post;
 
-    $self->end($assets, \@matched);
-}
-
-sub matched {
-    my $self = shift;
-    return $self->stash->{matched};
-}
-
-sub digest {
-    my $self = shift;
-    return $self->stash->{digest};
-}
-
-sub mtime {
-    my $self = shift;
-    return $self->stash->{mtime};
+    $self->end;
 }
 
 sub _match {
     my $self = shift;
     my $asset = shift;
 
-    return $self->match($asset, 0) if $self->where->{type} && $self->where->{type}->type ne $asset->type->type;
+#    return $self->match($asset, 0) if $self->where->{type} && $self->where->{type}->type ne $asset->type->type;
 
-    my $code;
-    if ($code = $self->where->{path}) {
-        local $_ = $asset->path;
-        return $self->match($asset, 0) if $code->($_, $asset, $self);
-    }
+#    my $code;
+#    if ($code = $self->where->{path}) {
+#        local $_ = $asset->path;
+#        return $self->match($asset, 0) if $code->($_, $asset, $self);
+#    }
 
-    if ($code = $self->where->{code}) {
-        return $self->match($asset, 0) if $code->($asset, $self);
-    }
+#    if ($code = $self->where->{code}) {
+#        return $self->match($asset, 0) if $code->($asset, $self);
+#    }
 
     return $self->match($asset, 1);
 }
@@ -131,6 +142,11 @@ sub post {
 sub remove {
     my $self = shift;
     $self->assets->filter_clear(filter => $self);
+}
+
+sub kind {
+    my $self = shift;
+    return $self->bucket->kind;
 }
 
 1;

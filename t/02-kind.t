@@ -18,3 +18,9 @@ is(File::Assets->kind($assets->include("apple.js"))->kind, "js");
 
 $asset->attributes->{media} = "print";
 is(File::Assets->kind($asset)->kind, "css-print");
+
+ok(File::Assets::Kind->new("css-screen")->is_better_than(File::Assets::Kind->new("css")));
+ok(!File::Assets::Kind->new("css")->is_better_than(File::Assets::Kind->new("css-screen")));
+ok(!File::Assets::Kind->new("css-print")->is_better_than(File::Assets::Kind->new("css-screen")));
+ok(File::Assets::Kind->new("css-screen-tv")->is_better_than(File::Assets::Kind->new("css-screen")));
+

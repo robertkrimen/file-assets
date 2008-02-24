@@ -8,6 +8,19 @@ use base qw/File::Assets::Filter/;
 use Digest;
 use File::Assets;
 
+for my $ii (qw/content_digest content_digester/) {
+    no strict 'refs';
+    *$ii = sub {
+        my $self = shift;
+        return $self->stash->{$ii} unless @_;
+        return $self->stash->{$ii} = shift;
+    };
+}
+
+sub signature {
+    return "collect";
+}
+
 my %default = (qw/
         skip_single 0
         skip_if_exists 0
@@ -37,7 +50,7 @@ sub pre {
     return 0 if $self->skip_if_exists;
 
     if ($self->cfg->{content_digest}) {
-        $self->stash->{content_digester} = File::Assets::Util->digest;
+        $self->content_digester(File::Assets::Util->digest);
     }
 
     return 1;
@@ -46,7 +59,7 @@ sub pre {
 sub process {
     my $self = shift;
     $self->SUPER::process(@_);
-    if (my $digester = $self->stash->{content_digester}) {
+    if (my $digester = $self->content_digester) {
         my $asset = shift;
         $digester->add($asset->content_digest."\n");
     }
@@ -56,29 +69,29 @@ sub post {
     my $self = shift;
     $self->SUPER::post(@_);
 
-    my $assets = shift;
-    my $matched = shift;
+#    my $assets = shift;
+    my $matched = $self->matched;
 
     return unless @$matched;
 
-    return if $self->cfg->{skip_single} && 1 == @$matched;
+#    return if $self->cfg->{skip_single} && 1 == @$matched;
 
-    if (my $digester = $self->stash->{content_digester}) {
-        $self->stash->{content_digest} = $digester->hexdigest;
-    }
+#    if (my $digester = $self->content_digester) {
+#        $self->content_digest($digester->hexdigest);
+#    }
 
-    my $type = $self->find_type;
+#    my $type = $self->find_type;
 
-    return if $self->skip_if_exists;
+#    return if $self->skip_if_exists;
 
-    my $build = $self->should_build;
+#    my $build = $self->should_build;
 
+    my $build = 1;
     if ($build) {
-        $self->check_digest_file->touch;
-        $self->build;
+#        $self->check_digest_file->touch;
+        my $asset = $self->build;
+        $self->substitute($asset);
     }
-
-    $self->replace;
 }
 
 sub skip_if_exists {
@@ -131,53 +144,55 @@ sub check_digest_file {
     return $file;
 }
 
-sub asset {
-    my $self = shift;
-    return $self->stash->{asset} ||= do {
-        my $type = shift || $self->find_type;
-        my $path = File::Assets::Util->build_asset_path(undef, # $output
-            assets => $self->assets,
-            filter => $self,
-            name => $self->assets->name,
-            type => $type,
-            digest => $self->digest,
-            content_digest => $self->content_digest,
-        );
-        return File::Assets::Util->parse_asset_by_path(
-            path => $path,
-            base => $self->assets->rsc,
-            type => $type,
-        );
-    }
-}
-
-sub content_digest {
-    my $self = shift;
-    return $self->stash->{content_digest};
-}
+#sub asset {
+#    my $self = shift;
+#    return $self->stash->{asset} ||= do {
+#        my $type = shift || $self->find_type;
+#        my $path = File::Assets::Util->build_asset_path(undef, # $output
+#            assets => $self->assets,
+#            filter => $self,
+#            name => $self->assets->name,
+#            type => $type,
+#            digest => $self->digest,
+#            content_digest => $self->content_digest,
+#        );
+#        return File::Assets::Util->parse_asset_by_path(
+#            path => $path,
+#            base => $self->assets->rsc,
+#            type => $type,
+#        );
+#    }
+#}
 
 sub build {
     my $self = shift;
 
     my $content = $self->build_content;
 
-    $self->asset->write($content) if defined $content;
+#    $self->asset->write($content) if defined $content;
+    my $output_asset = $self->assets->output_asset($self);
+    $output_asset->write($content) if defined $content;
+
+    return $output_asset;
 }
 
-sub replace {
+sub substitute {
     my $self = shift;
+    my $asset = shift;
 
-    my $assets = $self->stash->{assets};
-    my $matched = $self->matched;
-    my $top_match = $matched->[0];
-    my $top_asset = $top_match->{asset};
+#    my $assets = $self->stash->{assets};
+#    my $matched = $self->matched;
+#    my $top_match = $matched->[0];
+#    my $top_asset = $top_match->{asset};
 
-    for my $match (reverse @$matched) {
-        my $rank = $match->{rank};
-        splice @$assets, $rank, 1, ();
-    }
+#    for my $match (reverse @$matched) {
+#        my $rank = $match->{rank};
+#        splice @$assets, $rank, 1, ();
+#    }
 
-    splice @$assets, $top_match->{rank}, 0, $self->asset; 
+#    splice @$assets, $top_match->{rank}, 0, $self->asset; 
+
+    $self->bucket->add_asset($asset);
 }
 
 sub find_type {
@@ -185,7 +200,7 @@ sub find_type {
     my $frob;
     return $frob if $frob = $self->type;
     # FIXME Is this a good idea? What happens when you mix types?
-    return $frob if (($frob = $self->stash->{matched}->[0]) && ($frob = $frob->{asset}->type));
+    return $frob if (($frob = $self->matched->[0]) && ($frob = $frob->{asset}->type));
     return undef;
 }
 

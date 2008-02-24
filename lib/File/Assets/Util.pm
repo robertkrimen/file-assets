@@ -33,10 +33,10 @@ sub parse_name {
 }
 
 sub same_type {
+    no warnings 'uninitialized';
     my $class = shift;
-    my $aa = $class->parse_type($_[0]);
-    my $bb = $class->parse_type($_[1]);
-    croak "Couldn't parse @_" unless $aa && $bb;
+    my $aa = $class->parse_type($_[0]) or confess "Couldn't parse: $_[0]";
+    my $bb = $class->parse_type($_[1]) or confess "Couldn't parse: $_[1]";
     
     return $aa->simplified eq $bb->simplified;
 }

@@ -7,6 +7,10 @@ use File::Assets::Util;
 use Carp::Clan qw/^File::Assets/;
 use Object::Tiny qw/type rank attributes/;
 
+sub new {
+    croak "$_[0] is an abstract class";
+}
+
 sub mtime {
     return 0;
 }

@@ -3,12 +3,13 @@ package File::Assets::Bucket;
 use warnings;
 use strict;
 
-use Object::Tiny qw/kind/;
+use Object::Tiny qw/kind assets/;
 
 sub new {
     my $self = bless {}, shift;
     $self->{kind} = my $kind = shift;
-    $self->{assets} = [];
+    $self->{assets} = my $assets = shift;
+    $self->{slice} = [];
     $self->{filters} = {};
     return $self;
 }
@@ -16,7 +17,7 @@ sub new {
 sub add_asset {
     my $self = shift;
     my $asset = shift;
-    push @{ $self->{assets} }, $asset;
+    push @{ $self->{slice} }, $asset;
 }
 
 sub add_filter {
@@ -38,20 +39,20 @@ sub exports {
     my @assets = $self->all;
     my $filters = $self->{filters};
     for my $filter (values %$filters) {
-        $filter->filter(\@assets, $self);
+        $filter->filter(\@assets, $self, $self->assets);
     }
-    return @assets;
+    return $self->all;
 }
 
 sub clear {
     my $self = shift;
-    $self->{assets} = [];
+    $self->{slice} = [];
     $self->{filters} = {};
 }
 
 sub all {
     my $self = shift;
-    return @{ $self->{assets} };
+    return @{ $self->{slice} };
 }
 
 1;

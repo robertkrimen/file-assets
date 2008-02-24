@@ -9,6 +9,10 @@ use File::Temp;
 
 __PACKAGE__->mk_classdata($_) for qw/_minifier _type/;
 
+sub signature {
+    return "minifier";
+}
+
 sub new {
     my $class = shift;
     my $self = $class->SUPER::new(@_);

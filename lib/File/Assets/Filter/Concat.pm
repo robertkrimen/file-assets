@@ -5,6 +5,10 @@ use warnings;
 
 use base qw/File::Assets::Filter::Collect/;
 
+sub signature {
+    return "concat";
+}
+
 sub build_content {
     my $self = shift;
 
