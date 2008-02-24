@@ -192,6 +192,11 @@ sub substitute {
 
 #    splice @$assets, $top_match->{rank}, 0, $self->asset; 
 
+    my $matched = $self->matched;
+    for my $match (@$matched) {
+        $match->{asset}->hide;
+    }
+
     $self->bucket->add_asset($asset);
 }
 

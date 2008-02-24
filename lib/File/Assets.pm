@@ -118,7 +118,11 @@ sub new {
 
     $self->{output_asset_scheme} = $_{output_asset} || $_{output_asset_scheme} || [];
     $self->{output_path_scheme} = $_{output_path} || $_{output_path_scheme} || [];
-    $self->{filter_scheme} = $_{filter} || $_{filters} || $_{filter_scheme} || [];
+    $self->{filter_scheme} = {};
+    my $filter_scheme = $_{filter} || $_{filters} || $_{filter_scheme} || [];
+    for my $rule (@$filter_scheme) {
+        $self->filter(@$rule);
+    }
 
     return $self;
 }
@@ -353,10 +357,15 @@ sub _exports {
         $bucket->add_asset($asset);
     }
 
-    my @filters = @{ $self->{filter_scheme} };
+    my $filter_scheme = $self->{filter_scheme};
+    my @global = @{ $filter_scheme->{'*'} || [] };
     while (my ($kind, $bucket) = each %bucket) {
-        for my $filter (@filters) {
-            $bucket->add_filter($filter) if $filter->fit($bucket);
+        $bucket->add_filter($_) for @global;
+        my $head = $bucket->kind->head;
+        for my $category (sort grep { ! m/^$head-/ } keys %$filter_scheme) {
+            next if length $category > length $kind; # Too specific
+            next unless 0 == index $kind, $category;
+            $bucket->add_filter($_) for (@{ $filter_scheme->{$category} });
         }
     }
 
@@ -385,107 +394,31 @@ sub _exports {
 
 sub filter {
     my $self = shift;
-    my $_filter = shift;
-    croak "Couldn't find filter for ($_filter)"  unless my $filter = File::Assets::Util->parse_filter($_filter, @_, assets => $self);
-    push @{ $self->filters }, $filter;
-    return $filter;
+    my ($kind, $filter);
+    if (@_ == 1) {
+        $filter = shift;
+    }
+    else {
+        $kind = File::Assets::Kind->new(shift);
+        $filter = shift;
+    }
+
+    my $name = $kind ? $kind->kind : '*';
+
+    my $category = $self->{filter_scheme}->{$name} ||= [];
+
+    # TODO Create filter...
+
+    push @$category, $filter;
+
+#    croak "Couldn't find filter for ($_filter)"  unless my $filter = File::Assets::Util->parse_filter($_filter, @_, assets => $self);
+
 }
 
 sub filter_clear {
     my $self = shift;
-    if (@_) {
-        local %_ = @_;
-        if ($_{type}) {
-            my $type = File::Assets::Util->parse_type($_{type}) or croak "Don't know type ($_{type})";
-            for my $filter (@{ $self->filters }) {
-                $filter->remove if $filter->type && $filter->type->type eq $type->type;
-            }
-        }
-        if ($_{filter}) {
-            my $filter = ref $_{filter} ? refaddr $_{filter} : $_{filter};
-            my @filters = grep { $filter ne refaddr $_ } @{ $self->filters };
-            $self->{filters} = \@filters;
-        }
-    }
-    else {
-        $self->{filters} = [];
-    }
+    croak __PACKAGE__, "::filter_clear is deprecated, nothing happens"
 }
-
-sub _filter {
-    my $self = shift;
-    my $assets = shift;
-    for my $filter (@{ $self->filters }) {
-        $filter->filter($assets);
-    }
-}
-
-#sub _calculate_output_path {
-#    my $self = shift;
-#    my $kind = shift;
-#    my $signature = shift;
-
-#    my $key = join ":", $kind->kind, $signature;
-
-#    my ($best_kind, %output_path);
-#    
-#    # TODO Cache the result of this
-#    for my $output_path_possibility (@{ $self->{output_path_scheme} }) {
-#        my ($condition, $rule, $flags) = @$output_path_possibility;
-
-#        my $result; # 1 - A better match; -1 - A match, but worse; undef - Skip, not a match!
-
-#        if (ref $condition eq "CODE") {
-#            next unless defined ($result = $condition->($kind, $signature, $best_kind));
-#        }
-#        elsif (ref $condition eq "") {
-#            if ($condition eq $key) {
-#                # Best possible match
-#                $result = 1;
-#                $best_kind = $kind;
-#            }
-#            elsif ($condition eq "default") {
-#                $result = $best_kind ? -1 : 1; 
-#            }
-#        }
-
-#        my ($condition_kind, $condition_signature) = split m/:/, $condition, 2;
-#            
-#        unless (defined $result) {
-
-#            # No exact match, try to find the best fit...
-
-#            # Signature doesn't match or is not a wildcard, so move on to the next rule
-#            next if defined $condition_signature && $condition_signature ne '*' && $condition_signature ne $signature;
-
-#            $condition_kind = File::Assets::Kind->new($condition_kind);
-
-#            # Type isn't the same as the asset (or whatever) kind, so move on to the next rule
-#            next unless File::Assets::Util->same_type($condition_kind->type, $kind->type);
-#        }
-
-#        # At this point, we have a match, but is it a better match then one we already have?
-#        if (! $best_kind || ($condition_kind->is_better_than($best_kind))) {
-#            $result = 1;
-#        }
-
-#        next unless defined $result;
-
-#        my %rule;
-#        %rule = ref $rule eq "" ? (path => $rule) : %$rule;
-
-#        if ($result > 0) {
-#            $output_path{$_} = $rule{$_} for keys %rule;
-#        }
-#        else {
-#            for (keys %rule) {
-#                $output_path{$_} = $rule{$_} unless defined $output_path{$_};
-#            }
-#        }
-#    }
-
-#    return $output_path{path};
-#}
 
 sub _calculate_best {
     my $self = shift;
@@ -493,10 +426,12 @@ sub _calculate_best {
     my $kind = shift;
     my $signature = shift;
     my $handler = shift;
+    my $default = shift;
 
     my $key = join ":", $kind->kind, $signature;
 
     my ($best_kind, %return);
+    %return = %$default if $default;
     
     # TODO Cache the result of this
     for my $rule (@$scheme) {
@@ -562,47 +497,30 @@ sub output_path {
 
     my $result = $self->_calculate_best($self->{output_path_scheme}, $filter->kind, $filter->signature, sub {
         my $action = shift;
-        return ref $action eq "" ? (path => $action) : %$action;
+        return ref $action eq "CODE" ? %$action : path => $action;
     });
 
-    return $result->{path};
+    return $result;
 }
 
 sub output_asset {
     my $self = shift;
     my $filter = shift;
 
-    my $result = $self->_calculate_best($self->{output_asset_scheme}, $filter->kind, $filter->signature, sub {
-        my $action = shift;
-        return %$action;
-    });
+    if (0) {
+        my $result = $self->_calculate_best($self->{output_asset_scheme}, $filter->kind, $filter->signature, sub {
+            my $action = shift;
+            return %$action;
+        });
+    }
 
     my $kind = $filter->kind;
     my $output_path = $self->output_path($filter) or croak "Couldn't get output path for ", $kind->kind;
+    $output_path = File::Assets::Util->build_output_path($output_path, $filter);
 
     my $asset = File::Assets::Asset::File->new(path => $output_path, base => $self->rsc, type => $kind->type);
     return $asset;
 }
-
-#sub asset {
-#    my $self = shift;
-#    return $self->stash->{asset} ||= do {
-#        my $type = shift || $self->find_type;
-#        my $path = File::Assets::Util->build_asset_path(undef, # $output
-#            assets => $self->assets,
-#            filter => $self,
-#            name => $self->assets->name,
-#            type => $type,
-#            digest => $self->digest,
-#            content_digest => $self->content_digest,
-#        );
-#        return File::Assets::Util->parse_asset_by_path(
-#            path => $path,
-#            base => $self->assets->rsc,
-#            type => $type,
-#        );
-#    }
-#}
 
 1;
 

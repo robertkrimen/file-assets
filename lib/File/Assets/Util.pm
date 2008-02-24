@@ -101,21 +101,14 @@ sub parse_filter {
 #    }
 }
 
-sub build_asset_path {
+sub build_output_path {
     my $class = shift;
-    my $output = shift;
+    my $template = shift;
+    my $filter = shift;
 
-    return $$output if ref $output eq "SCALAR";
+    my $path = $template->{path};
 
-    local %_ = @_;
-
-    my $assets = $_{assets};
-    my $filter = $_{filter};
-
-    $output = $filter->output unless defined $output;
-    $output = $assets->output unless defined $assets;
-
-    return $$output if ref $output eq "SCALAR";
+    return $$path if ref $path eq "SCALAR";
 
 #   TODO Maybe we should put this here, maybe not
 #    if ($output =~ m/^\//) {
@@ -124,22 +117,73 @@ sub build_asset_path {
 #        $output = $assets->path->child($output);
 #    }
 
-    $output = "%n.%e" unless $output;
-    $output .= "%n.%e" if $output && $output =~ m/\/$/;
-    $output .= ".%e" if $output =~ m/(?:^|\/)[^.]+$/;
-    my $type = $_{type};
-    my $extension;
-    $extension = ($type->extensions)[0] if defined $type;
-    $output =~ s/%e/$extension/g if defined $extension;
-    $output =~ s/%D/$_{content_digest}/g if $_{content_digest};
-    $output =~ s/%d/$_{digest}/g if $_{digest};
-    $output =~ s/%n/$_{name}/g if $_{name};
+    $path = "%n-%k.%e" unless $path;
+    $path .= "%n-%k.%e" if $path && $path =~ m/\/$/;
+    $path .= ".%e" if $path =~ m/(?:^|\/)[^.]+$/;
 
-    $output =~ m/(?<!%)%[eDdn]/ and croak "Unmatched substitution in output pattern ($output)";
+    local %_ = (
+        content_digest => $filter->content_digest,
+        digest => $filter->digest,
+        name => $filter->assets->name,
+        kind => $filter->kind->kind,
+        head => $filter->kind->head,
+        tail => $filter->kind->tail,
+    );
+    my $extension = $filter->kind->extension;
+    $path =~ s/%e/$extension/g if defined $extension;
+    $path =~ s/%D/$_{content_digest}/g if $_{content_digest};
+    $path =~ s/%d/$_{digest}/g if $_{digest};
+    $path =~ s/%n/$_{name}/g if $_{name};
+    $path =~ s/%k/$_{kind}/g if $_{kind};
+    $path =~ s/%h/$_{head}/g if $_{head};
+    $path =~ s/%a/$_{tail}/g if $_{tail};
 
-    $output =~ s/%%/%/g;
+    $path =~ m/(?<!%)%[eDdnkha]/ and croak "Unmatched substitution in output path pattern ($path)";
 
-    return $output;
+    $path =~ s/%%/%/g;
+
+    return $path;
 }
+
+#sub build_asset_path {
+#    my $class = shift;
+#    my $output = shift;
+
+#    return $$output if ref $output eq "SCALAR";
+
+#    local %_ = @_;
+
+#    my $assets = $_{assets};
+#    my $filter = $_{filter};
+
+#    $output = $filter->output unless defined $output;
+#    $output = $assets->output unless defined $assets;
+
+#    return $$output if ref $output eq "SCALAR";
+
+##   TODO Maybe we should put this here, maybe not
+##    if ($output =~ m/^\//) {
+##    }
+##    elsif ($assets) {
+##        $output = $assets->path->child($output);
+##    }
+
+#    $output = "%n.%e" unless $output;
+#    $output .= "%n.%e" if $output && $output =~ m/\/$/;
+#    $output .= ".%e" if $output =~ m/(?:^|\/)[^.]+$/;
+#    my $type = $_{type};
+#    my $extension;
+#    $extension = ($type->extensions)[0] if defined $type;
+#    $output =~ s/%e/$extension/g if defined $extension;
+#    $output =~ s/%D/$_{content_digest}/g if $_{content_digest};
+#    $output =~ s/%d/$_{digest}/g if $_{digest};
+#    $output =~ s/%n/$_{name}/g if $_{name};
+
+#    $output =~ m/(?<!%)%[eDdn]/ and croak "Unmatched substitution in output pattern ($output)";
+
+#    $output =~ s/%%/%/g;
+
+#    return $output;
+#}
 
 1;

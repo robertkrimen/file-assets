@@ -9,10 +9,10 @@ use Test::More qw/no_plan/;
 use t::Test;
 my $assets = t::Test->assets(
     filters => [
-        File::Assets::Filter::Concat->new(fit => "css"),
+        [ "css" => File::Assets::Filter::Concat->new, ],
     ],
     output_path => [
-        [ "css-screen" => $digest ],
+        [ "css-screen" => "$digest" ],
     ],
 );
 my $scratch = t::Test->scratch;
@@ -22,13 +22,13 @@ $assets->include("css/banana.css");
 $assets->include("js/apple.js");
 
 is($assets->export, <<_END_);
-<link rel="stylesheet" type="text/css" href="http://example.com/static/$digest.css" />
 <script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/$digest.css" />
 _END_
 
-ok($scratch->exists("static/$digest"));
-ok(-s $scratch->file("static/$digest"));
-is($scratch->read("static/$digest"), <<_END_);
+ok($scratch->exists("static/$digest.css"));
+ok(-s $scratch->file("static/$digest.css"));
+is($scratch->read("static/$digest.css"), <<_END_);
 /* Test file: static/css/apple.css */
 
 /* Test file: static/css/banana.css */

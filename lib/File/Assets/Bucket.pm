@@ -10,7 +10,7 @@ sub new {
     $self->{kind} = my $kind = shift;
     $self->{assets} = my $assets = shift;
     $self->{slice} = [];
-    $self->{filters} = {};
+    $self->{filters} = [];
     return $self;
 }
 
@@ -24,24 +24,29 @@ sub add_filter {
     my $self = shift;
     my $filter = shift;
 
-    my $filters = $self->{filters};
     my $signature = $filter->signature;
+    my $filters = $self->{filters};
 
-    return 0 if $filters->{$signature} && ! $filter->is_better_than($filters->{$signature});
+    if (defined $signature) {
+        for my $entry (@$filters) {
+            if (defined $entry->[0] && $entry->[0] eq $signature) {
+                $entry->[1] = $filter;
+                return;
+            }
+        }
+    }
 
-    $filters->{$signature} = $filter;
-
-    return 1;
+    push @$filters, [ $signature, $filter ];
 }
 
 sub exports {
     my $self = shift;
     my @assets = $self->all;
     my $filters = $self->{filters};
-    for my $filter (values %$filters) {
-        $filter->filter(\@assets, $self, $self->assets);
+    for my $entry (@$filters) {
+        $entry->[1]->filter(\@assets, $self, $self->assets);
     }
-    return $self->all;
+    return grep { ! $_->hidden } $self->all;
 }
 
 sub clear {

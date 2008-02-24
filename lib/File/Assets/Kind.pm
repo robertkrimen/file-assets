@@ -3,7 +3,7 @@ package File::Assets::Kind;
 use strict;
 use warnings;
 
-use Object::Tiny qw/kind type tail/;
+use Object::Tiny qw/kind type head tail/;
 
 sub new {
     my $self = bless {}, shift;
@@ -17,8 +17,14 @@ sub new {
     $self->{type} = $type;
     $kind[1] = "" unless defined $kind[1];
     $self->{tail} = my $tail = $kind[1];
+    $self->{head} = ($type->extensions)[0];
     
     return $self;
+}
+
+sub extension {
+    my $self = shift;
+    return ($self->type->extensions)[0];
 }
 
 sub is_better_than_or_equal {

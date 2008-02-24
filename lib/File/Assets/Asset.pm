@@ -5,7 +5,7 @@ use strict;
 
 use File::Assets::Util;
 use Carp::Clan qw/^File::Assets/;
-use Object::Tiny qw/type rank attributes/;
+use Object::Tiny qw/type rank attributes hidden/;
 
 sub new {
     croak "$_[0] is an abstract class";
@@ -17,6 +17,10 @@ sub mtime {
 
 sub external {
     return 0;
+}
+
+sub hide {
+    shift->{hidden} = 1;
 }
 
 1;
