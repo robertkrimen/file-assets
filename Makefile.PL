@@ -17,6 +17,7 @@ requires 'Digest';
 requires 'Carp::Clan';
 requires 'Object::Tiny';
 requires 'Class::Data::Inheritable';
+requires 'HTML::Declare';
 
 recommends 'JavaScript::Minifier';
 recommends 'CSS::Minifier';

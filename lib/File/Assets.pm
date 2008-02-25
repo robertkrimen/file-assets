@@ -85,6 +85,7 @@ use File::Assets::Kind;
 use File::Assets::Bucket;
 use Scalar::Util qw/blessed refaddr/;
 use Carp::Clan qw/^File::Assets::/;
+use HTML::Declare qw/LINK SCRIPT/;
 
 =head2 File::Assets->new( base => <base> )
 
@@ -211,16 +212,19 @@ sub _export_html {
     my $html = "";
     for my $asset (@$assets) {
         if ($asset->type->type eq "text/css") {
+#        if ($asset->kind->extension eq "css") {
             my $media = $asset->attributes->{media} || "screen";
             if ($asset->external) {
                 $html .= <<_END_;
 <link rel="stylesheet" type="text/css" media="$media" href="@{[ $asset->uri ]}" />
 _END_
+#                $html .= LINK({ rel => "stylesheet", type => $asset->type->type, media => $asset->attributes->{media} || "screen", href => $asset->uri });
             }
             else {
                 $html .= "<style media=\"$media\" type=\"text/css\">\n" . ${ $asset->content } . "\n</style>\n";
             }
         }
+#        elsif ($asset->kind->extension eq "js") {
         elsif ($asset->type->type eq "application/javascript" ||
                 $asset->type->type eq "application/x-javascript" || # Handle different MIME::Types versions.
                 $asset->type->type =~ m/\bjavascript\b/) {

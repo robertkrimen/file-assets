@@ -2,6 +2,7 @@ TODO:
  - Allow extra attributes to be associated with assets
  - Implement css media functionality
  - More documentation
+ - "Duplicate assets (via ->include(...)" testing?
 
 0.032 Tuesday January 22 14:01:12 PST 2008:
  - Some minor tweaking of the timing of the caching test
