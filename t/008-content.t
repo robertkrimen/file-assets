@@ -28,44 +28,43 @@ _END_
 {
     my $assets = assets;
 
-    is($assets->export, <<_END_);
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/apple.css" />
-<style media="screen" type="text/css">
+    compare($assets->export, qw(
+            http://example.com/static/js/apple.js
+            http://example.com/static/css/apple.css
+        ), [ css => <<_END_ ],
 div {
     background: red;
 }
-
-</style>
 _END_
+    );
 
-    is($assets->export('css'), <<_END_);
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/apple.css" />
-<style media="screen" type="text/css">
+    compare($assets->export('css'), qw(
+            http://example.com/static/css/apple.css
+        ), [ css => <<_END_ ],
 div {
     background: red;
 }
-
-</style>
 _END_
+    );
 
-    is($assets->export('js'), <<_END_);
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-_END_
+
+    compare($assets->export('js'), qw(
+            http://example.com/static/js/apple.js
+    ));
 
     ok($assets->include("css/banana.css"));
 
-    is($assets->export, <<_END_);
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/apple.css" />
-<style media="screen" type="text/css">
+    compare($assets->export, qw(
+            http://example.com/static/js/apple.js
+            http://example.com/static/css/apple.css
+        ), [ css => <<_END_ ],
 div {
     background: red;
 }
-
-</style>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/banana.css" />
 _END_
+        qw(
+            http://example.com/static/css/banana.css
+    ));
 
     memory_cycle_ok($assets);
 }
@@ -80,10 +79,9 @@ _END_
     my $digest = "4622fcfb3d29438ce9298d288fdcc57e";
     ok($assets->include("css/banana.css"));
 
-    is($assets->export, <<_END_);
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/$digest.css" />
-_END_
+    compare($assets->export, qw(
+            http://example.com/static/js/apple.js
+    ), "http://example.com/static/$digest.css");
 
     ok($scratch->exists("static/$digest.css"));
     ok(-s $scratch->file("static/$digest.css"));
@@ -110,10 +108,9 @@ SKIP: {
     my $digest = "4622fcfb3d29438ce9298d288fdcc57e";
     ok($assets->include("css/banana.css"));
 
-    is($assets->export, <<_END_);
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/$digest.css" />
-_END_
+    compare($assets->export, qw(
+            http://example.com/static/js/apple.js
+    ), "http://example.com/static/$digest.css");
     ok($scratch->exists("static/$digest.css"));
     ok(-s $scratch->file("static/$digest.css"));
     is($scratch->read("static/$digest.css"), 'div{background:red;}');
@@ -145,22 +142,37 @@ span {
 }
 _END_
 
-    is($assets->export, <<_END_);
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/$digest.css" />
-<style media="screen" type="text/css">
+    compare($assets->export, qw(
+            http://example.com/static/js/apple.js
+        ),
+        "http://example.com/static/$digest.css",
+        [ css => <<_END_ ],
 div {
     background: red;
 }
-
-</style>
-<style media="screen" type="text/css">
+_END_
+        [ css => <<_END_ ],
 span {
     margin: 1em;
 }
-
-</style>
 _END_
+    );
+
+    compare($assets->export, qw(
+            http://example.com/static/js/apple.js
+        ),
+        "http://example.com/static/$digest.css",
+        [ css => <<_END_ ],
+div {
+    background: red;
+}
+_END_
+        [ css => <<_END_ ],
+span {
+    margin: 1em;
+}
+_END_
+    );
 
     ok($scratch->exists("static/$digest.css"));
     ok(-s $scratch->file("static/$digest.css"));

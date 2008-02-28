@@ -26,18 +26,18 @@ $assets->include("js/apple.js");
 
 ok($filter = $assets->filter(css => "yuicompressor:./yuicompressor.jar"));
 is($filter->cfg->{jar}, "./yuicompressor.jar");
-is($assets->export, <<_END_);
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/YUI.css" />
-_END_
+compare($assets->export, qw(
+    http://example.com/static/js/apple.js
+    http://example.com/static/YUI.css
+));
 ok($scratch->exists("static/YUI.css"));
 is(-s $scratch->file("static/YUI.css"), 0);
 
 ok($assets->filter(js => "yuicompressor" => { jar => "./yuicompressor.jar" }));
-is($assets->export, <<_END_);
-<script src="http://example.com/static/YUI.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/YUI.css" />
-_END_
+compare($assets->export, qw(
+    http://example.com/static/YUI.js
+    http://example.com/static/YUI.css
+));
 ok($scratch->exists("static/YUI.js"));
 is(-s $scratch->file("static/YUI.js"), 0);
 
@@ -49,11 +49,11 @@ $assets->{output_path_scheme} = [
     ];
 
 ok($assets->filter(js => "yuicompressor" => { jar => "./yuicompressor.jar" }));
-is($assets->export, <<_END_);
-<script src="http://example.com/static/xyzzy/YUI.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/apple.css" />
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/banana.css" />
-_END_
+compare($assets->export, qw(
+    http://example.com/static/xyzzy/YUI.js
+    http://example.com/static/css/apple.css
+    http://example.com/static/css/banana.css
+));
 ok($scratch->exists("static/xyzzy/YUI.js"));
 is(-s $scratch->file("static/xyzzy/YUI.js"), 0);
 

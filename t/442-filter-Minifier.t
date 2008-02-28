@@ -25,21 +25,21 @@ use t::Test;
     is(-s $scratch->file("static/css/cherry.css"), 150);
 
     ok($filter = $assets->filter(css => "minifier"));
-    is($assets->export, <<_END_);
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-<script src="http://example.com/static/js/cherry.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/assets-screen.css" />
-_END_
+    compare($assets->export, qw(
+        http://example.com/static/js/apple.js
+        http://example.com/static/js/cherry.js
+        http://example.com/static/assets-screen.css
+    ));
     ok($scratch->exists("static/assets-screen.css"));
     ok(-s $scratch->file("static/assets-screen.css"));
     like($scratch->read("static/assets-screen.css"), qr/div\.cherry/);
     like($scratch->read("static/assets-screen.css"), qr/font-weight/);
 
     ok($filter = $assets->filter(js => "minifier-javascript"));
-    is($assets->export, <<_END_);
-<script src="http://example.com/static/assets.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/assets-screen.css" />
-_END_
+    compare($assets->export, qw(
+        http://example.com/static/assets.js
+        http://example.com/static/assets-screen.css
+    ));
     ok($scratch->exists("static/assets.js"));
     ok(-s $scratch->file("static/assets.js"));
     like($scratch->read("static/assets.js"), qr/"Nothing happens\."/);
@@ -48,10 +48,11 @@ _END_
     $scratch->delete("static/assets.js");
 
     ok($filter = $assets->filter("minifier"));
-    is($assets->export, <<_END_);
-<script src="http://example.com/static/assets.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/assets-screen.css" />
-_END_
+    compare($assets->export, qw(
+        http://example.com/static/assets.js
+        http://example.com/static/assets-screen.css
+    ));
+    ok($filter = $assets->filter(js => "minifier-javascript"));
     ok($scratch->exists("static/assets.js"));
     ok(-s $scratch->file("static/assets.js"));
     like($scratch->read("static/assets.js"), qr/"Nothing happens\."/);
@@ -76,10 +77,10 @@ _END_
     ok($scratch->exists("static/css/cherry.css"));
     is(-s $scratch->file("static/css/cherry.css"), 150);
 
-    is($assets->export, <<_END_);
-<script src="http://example.com/static/assets.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/assets-screen.css" />
-_END_
+    compare($assets->export, qw(
+        http://example.com/static/assets.js
+        http://example.com/static/assets-screen.css
+    ));
     ok($scratch->exists("static/assets-screen.css"));
     ok(-s $scratch->file("static/assets-screen.css"));
     like($scratch->read("static/assets-screen.css"), qr/div\.cherry/);

@@ -15,26 +15,26 @@ ok(-e $scratch->base->file("static/js/apple.js"));
 ok($assets->include("css/apple.css"));
 ok($assets->include("js/apple.js"));
 
-is($assets->export, <<_END_);
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/apple.css" />
-_END_
+compare($assets->export, qw(
+    http://example.com/static/js/apple.js
+    http://example.com/static/css/apple.css
+));
 
-is($assets->export('css'), <<_END_);
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/apple.css" />
-_END_
+compare($assets->export('css'), qw(
+    http://example.com/static/css/apple.css
+));
 
-is($assets->export('js'), <<_END_);
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-_END_
+compare($assets->export('js'), qw(
+    http://example.com/static/js/apple.js
+));
 
 ok($assets->include("css/banana.css"));
 
-is($assets->export, <<_END_);
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/apple.css" />
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/banana.css" />
-_END_
+compare($assets->export, qw(
+    http://example.com/static/js/apple.js
+    http://example.com/static/css/apple.css
+    http://example.com/static/css/banana.css
+));
 
 use Test::Memory::Cycle;
 memory_cycle_ok($assets);

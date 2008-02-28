@@ -85,7 +85,7 @@ use File::Assets::Kind;
 use File::Assets::Bucket;
 use Scalar::Util qw/blessed refaddr/;
 use Carp::Clan qw/^File::Assets::/;
-use HTML::Declare qw/LINK SCRIPT/;
+use HTML::Declare qw/LINK SCRIPT STYLE/;
 
 =head2 File::Assets->new( base => <base> )
 
@@ -228,44 +228,36 @@ sub _export_html {
     my $self = shift;
     my $assets = shift;
 
-    my $html = "";
+    my @content;
     for my $asset (@$assets) {
         if ($asset->type->type eq "text/css") {
 #        if ($asset->kind->extension eq "css") {
             my $media = $asset->attributes->{media} || "screen";
             if (! $asset->inline) {
-                $html .= <<_END_;
-<link rel="stylesheet" type="text/css" media="$media" href="@{[ $asset->uri ]}" />
-_END_
-#                $html .= LINK({ rel => "stylesheet", type => $asset->type->type, media => $asset->attributes->{media} || "screen", href => $asset->uri });
+                push @content, LINK({ rel => "stylesheet", type => $asset->type->type, media => $asset->attributes->{media} || "screen", href => $asset->uri });
             }
             else {
-                $html .= "<style media=\"$media\" type=\"text/css\">\n" . ${ $asset->content } . "\n</style>\n";
+                push @content, STYLE({ type => $asset->type->type, media => $asset->attributes->{media} || "screen", _ => "\n${ $asset->content }" });
             }
         }
 #        elsif ($asset->kind->extension eq "js") {
         elsif ($asset->type->type eq "application/javascript" ||
                 $asset->type->type eq "application/x-javascript" || # Handle different MIME::Types versions.
                 $asset->type->type =~ m/\bjavascript\b/) {
-#            if ($asset->external) {
             if (! $asset->inline) {
-                $html .= <<_END_;
-<script src="@{[ $asset->uri ]}" type="text/javascript"></script>
-_END_
+                push @content, SCRIPT({ type => "text/javascript", src => $asset->uri });
             }
             else {
-                $html .= "<script type=\"text/javascript\">\n" . ${ $asset->content } . "\n</script>\n";
+                push @content, SCRIPT({ type => "text/javascript", _ => "\n${ $asset->content }" });
             }
         }
 
         else {
-            croak "Don't know how to handle asset $asset" unless $asset->external;
-            $html .= <<_END_;
-<link type="@{[ $asset->type->type ]}" href="@{[ $asset->uri ]}" />
-_END_
+            croak "Don't know how to handle asset $asset" unless ! $asset->inline;
+            push @content, LINK({ type => $asset->type->type, href => $asset->uri });
         }
     }
-    return $html;
+    return join "\n", @content;
 }
 
 =head2 @assets = $assets->exports([ <type> ])

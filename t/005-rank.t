@@ -8,47 +8,47 @@ my $assets = t::Test->assets;
 my $scratch = t::Test->scratch;
 
 $assets->include("css/apple.css");
-is($assets->export, <<_END_);
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/apple.css" />
-_END_
+compare($assets->export, qw(
+    http://example.com/static/css/apple.css
+));
 
 $assets->include("css/banana.css", -10);
-is($assets->export, <<_END_);
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/banana.css" />
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/apple.css" />
-_END_
+compare($assets->export, qw(
+    http://example.com/static/css/banana.css
+    http://example.com/static/css/apple.css
+));
 
 $assets->include("css/cherry.css", 0);
-is($assets->export, <<_END_);
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/banana.css" />
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/apple.css" />
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/cherry.css" />
-_END_
+compare($assets->export, qw(
+    http://example.com/static/css/banana.css
+    http://example.com/static/css/apple.css
+    http://example.com/static/css/cherry.css
+));
 
 $assets->include("js/cherry.js", -5);
-is($assets->export, <<_END_);
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/banana.css" />
-<script src="http://example.com/static/js/cherry.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/apple.css" />
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/cherry.css" />
-_END_
+compare($assets->export, qw(
+    http://example.com/static/css/banana.css
+    http://example.com/static/js/cherry.js
+    http://example.com/static/css/apple.css
+    http://example.com/static/css/cherry.css
+));
 
 $assets->include("js/apple.js", -100);
-is($assets->export, <<_END_);
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/banana.css" />
-<script src="http://example.com/static/js/cherry.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/apple.css" />
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/cherry.css" />
-_END_
+compare($assets->export, qw(
+    http://example.com/static/js/apple.js
+    http://example.com/static/css/banana.css
+    http://example.com/static/js/cherry.js
+    http://example.com/static/css/apple.css
+    http://example.com/static/css/cherry.css
+));
 
-is($assets->export('css'), <<_END_);
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/banana.css" />
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/apple.css" />
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/css/cherry.css" />
-_END_
+compare($assets->export('css'), qw(
+    http://example.com/static/css/banana.css
+    http://example.com/static/css/apple.css
+    http://example.com/static/css/cherry.css
+));
 
-is($assets->export('js'), <<_END_);
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-<script src="http://example.com/static/js/cherry.js" type="text/javascript"></script>
-_END_
+compare($assets->export('js'), qw(
+    http://example.com/static/js/apple.js
+    http://example.com/static/js/cherry.js
+));

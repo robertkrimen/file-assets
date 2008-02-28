@@ -21,10 +21,9 @@ $assets->include("css/apple.css");
 $assets->include("css/banana.css");
 $assets->include("js/apple.js");
 
-is($assets->export, <<_END_);
-<script src="http://example.com/static/js/apple.js" type="text/javascript"></script>
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/static/$digest.css" />
-_END_
+compare($assets->export, qw(
+    http://example.com/static/js/apple.js
+), "http://example.com/static/$digest.css");
 
 ok($scratch->exists("static/$digest.css"));
 ok(-s $scratch->file("static/$digest.css"));

@@ -6,6 +6,11 @@ use warnings;
 use File::Assets;
 use Directory::Scratch;
 use Test::Memory::Cycle;
+use Test::More;
+use HTML::Declare qw/LINK SCRIPT STYLE/;
+use base qw/Exporter/;
+use vars qw/@EXPORT/;
+@EXPORT = qw/compare/;
 
 my $scratch;
 sub scratch {
@@ -19,6 +24,40 @@ sub assets {
     shift;
     memory_cycle_ok($assets) if $assets;
     return $assets = File::Assets->new(base => [ "http://example.com/", scratch->base, "/static" ], @_);
+}
+
+sub compare ($;@) {
+    my $expect = shift;
+    my @content;
+    while (@_) {
+        if (! ref $_[0]) {
+            my $href = shift;
+            my ($kind) = $href =~ m/\.([^.]+)$/;
+            $kind = "css-screen" if $kind eq "css";
+            if ($kind eq "js") {
+                push @content, SCRIPT({ type => "text/javascript", src => $href });
+            }
+            elsif ($kind =~ m/^css\b/) {
+                my ($type, $media) = split m/-/, $kind;
+                push @content, LINK({ rel => "stylesheet", type => "text/css", media => $media, href => $href });
+            }
+        }
+        elsif (ref $_[0] eq "ARRAY") {
+            my ($kind, $content) = @{ shift() };
+            $kind = "css-screen" if $kind eq "css";
+            if ($kind eq "js") {
+                push @content, SCRIPT({ type => "text/javascript", _ => "\n$content" });
+            }
+            elsif ($kind =~ m/^css\b/) {
+                my ($type, $media) = split m/-/, $kind;
+                push @content, STYLE({ type => "text/css", media => $media, _ => "\n$content" });
+            }
+        }
+        else {
+            die "Don't understand: @_";
+        }
+    }
+    return is($expect, join "\n", @content);
 }
 
 END {

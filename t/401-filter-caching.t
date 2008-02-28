@@ -13,9 +13,7 @@ $assets->include("css/grape.css");
 
 my $path = "static/assets-screen.css";
 ok(my $filter = $assets->filter([ "Concat" ]));
-is($assets->export, <<_END_);
-<link rel="stylesheet" type="text/css" media="screen" href="http://example.com/$path" />
-_END_
+compare($assets->export, "http://example.com/$path");
 
 is($scratch->read($path), <<_END_);
 /* Test file: static/css/apple.css */
