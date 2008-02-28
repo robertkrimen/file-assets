@@ -5,8 +5,8 @@ use strict;
 my $digest = "b11bf9a77b520852e95af3e0b5c1aa95";
 
 use Test::More qw/no_plan/;
-
 use t::Test;
+require File::Assets::Filter::Concat;
 my $assets = t::Test->assets(
     filters => [
         [ "css" => File::Assets::Filter::Concat->new, ],

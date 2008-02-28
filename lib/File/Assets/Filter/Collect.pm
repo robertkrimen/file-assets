@@ -24,6 +24,7 @@ sub signature {
 my %default = (qw/
         skip_single 0
         skip_if_exists 0
+        skip_inline 1
         check_content 0
         content_digest 0
         check_age 1 
@@ -132,6 +133,14 @@ sub should_build {
     }
 
     return 0;
+}
+
+sub match {
+    my $self = shift;
+    my $asset = shift;
+    my $match = shift;
+    return $self->SUPER::match($asset, $match &&
+        (! $asset->inline || ! $self->cfg->{skip_inline}));
 }
 
 sub check_digest_file {

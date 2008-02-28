@@ -6,7 +6,6 @@ use warnings;
 use MIME::Types();
 use Scalar::Util qw/blessed/;
 use Module::Pluggable search_path => q/File::Assets::Filter/, require => 1, sub_name => q/filter_load/;
-my @filters = reverse sort  __PACKAGE__->filter_load();
 use Carp::Clan qw/^File::Assets/;
 use Digest;
 use File::Assets::Asset::File;
@@ -49,13 +48,15 @@ sub type_extension {
 }
 
 sub parse_type {
+    no warnings 'uninitialized';
     my $class = shift;
     my $type = shift;
     return unless defined $type;
     return $type if blessed $type && $type->isa("MIME::Type");
     $type = ".$type" if $type !~ m/\W+/;
     # Make sure we get stringified version of $type, whatever it is
-    return $class->types->mimeTypeOf($type."");
+    $type .= "";
+    return $class->types->mimeTypeOf($type."") || $class->types->type($type);
 }
 
 sub parse_rsc {
@@ -81,12 +82,18 @@ sub parse_rsc {
     return Path::Resource->new(uri => $uri, dir => $dir, path => $path);
 }
 
+my @_filters;
+sub _filters {
+    return @_filters ||
+        grep { ! m/::SUPER$/ } reverse sort  __PACKAGE__->filter_load();
+}
+
 sub parse_filter {
     my $class = shift;
     my $filter = shift;
 
     my $_filter;
-    for my $possible (@filters) {
+    for my $possible ($class->_filters) {
         last if $_filter = $possible->new_parse($filter, @_);
     }
 

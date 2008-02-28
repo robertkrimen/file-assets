@@ -182,6 +182,7 @@ sub match {
     my $self = shift;
     my $asset = shift;
     my $match = shift;
+
     return $match ? 1 : 0;
 }
 

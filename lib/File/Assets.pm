@@ -144,22 +144,36 @@ Returns the newly created asset.
 
 =cut
 
-sub include {
-    my $self = shift;
-    return $self->include_path(@_);
-}
-
 sub include_path {
     my $self = shift;
-    my $path = shift;
-    my $rank = shift;
-    my $type = shift;
+    return $self->include(@_);
+}
 
-    croak "Don't have a path to include" unless defined $path && length $path;
+sub include {
+    my $self = shift;
 
-    return $self->fetch($path) if $self->exists($path);
+    my (@asset, $path);
+    if (ref $_[0] ne "HASH") {
+        $path = shift;
+        croak "Don't have a path to include" unless defined $path && length $path;
+        if (ref $path eq "SCALAR") {
+            push @asset, content => $path;
+        }
+        else {
+            return $self->fetch($path) if $self->exists($path);
+            push @asset, path => $path;
+        }
+    }
 
-    my $asset = File::Assets::Asset::File->new(path => $path, type => $type, rank => $rank, base => $self->rsc);
+    for (qw/rank type/) {
+        last if ! @_ || ref $_[0] eq "HASH";
+        push @asset, $_ => shift;
+    }
+    push @asset, %{ $_[0] } if @_ && ref $_[0] eq "HASH";
+
+    my $asset = File::Assets::Asset->new(base => $self->rsc, @asset);
+
+    return $self->fetch($asset->path) if $asset->path && $self->exists($asset->path);
 
     $self->store($asset);
 
@@ -168,11 +182,16 @@ sub include_path {
 
 sub include_content {
     my $self = shift;
-    my $content = shift;
-    my $type = shift;
-    my $rank = shift;
 
-    my $asset = File::Assets::Asset::Content->new(content => $content, type => $type, rank => $rank, base => $self->rsc);
+    my @asset;
+    for (qw/content type rank/) {
+        last if ! @_ || ref $_[0] eq "HASH";
+        push @asset, $_ => shift;
+    }
+    push @asset, %{ $_[0] } if @_ && ref $_[0] eq "HASH";
+
+    #my $asset = File::Assets::Asset::Content->new(@include);
+    my $asset = File::Assets::Asset->new(@asset);
 
     $self->store($asset);
 
@@ -214,7 +233,7 @@ sub _export_html {
         if ($asset->type->type eq "text/css") {
 #        if ($asset->kind->extension eq "css") {
             my $media = $asset->attributes->{media} || "screen";
-            if ($asset->external) {
+            if (! $asset->inline) {
                 $html .= <<_END_;
 <link rel="stylesheet" type="text/css" media="$media" href="@{[ $asset->uri ]}" />
 _END_
@@ -228,7 +247,8 @@ _END_
         elsif ($asset->type->type eq "application/javascript" ||
                 $asset->type->type eq "application/x-javascript" || # Handle different MIME::Types versions.
                 $asset->type->type =~ m/\bjavascript\b/) {
-            if ($asset->external) {
+#            if ($asset->external) {
+            if (! $asset->inline) {
                 $html .= <<_END_;
 <script src="@{[ $asset->uri ]}" type="text/javascript"></script>
 _END_
@@ -540,7 +560,7 @@ sub output_asset {
     my $output_path = $self->output_path($filter) or croak "Couldn't get output path for ", $kind->kind;
     $output_path = File::Assets::Util->build_output_path($output_path, $filter);
 
-    my $asset = File::Assets::Asset::File->new(path => $output_path, base => $self->rsc, type => $kind->type);
+    my $asset = File::Assets::Asset->new(path => $output_path, base => $self->rsc, type => $kind->type);
     return $asset;
 }
 
