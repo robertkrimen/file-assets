@@ -11,7 +11,7 @@ sub output_asset_path {
 }
 
 sub output_asset {
-    return File::Assets::Asset::File->new(path => output_path(@_),
+    return File::Assets::Asset->new(path => output_path(@_),
         base => $assets->rsc, type => "text/css");
 }
 

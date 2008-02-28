@@ -8,8 +8,7 @@ use Scalar::Util qw/blessed/;
 use Module::Pluggable search_path => q/File::Assets::Filter/, require => 1, sub_name => q/filter_load/;
 use Carp::Clan qw/^File::Assets/;
 use Digest;
-use File::Assets::Asset::File;
-use File::Assets::Asset::Content;
+use File::Assets::Asset;
 
 {
     my $types;
