@@ -107,6 +107,12 @@ sub file {
     return $self->{file} ||= $self->rsc->file;
 }
 
+=head2 $asset->path 
+
+Returns the path of $asset
+
+=cut
+
 sub path {
     my $self = shift;
     return unless $self->{rsc};
@@ -157,6 +163,9 @@ sub write {
 
 Returns a hex digest for the content of $asset
 
+NOTE: $asset->digest used to return a unique signature for the asset (based off the filename), but this has changed to
+now return the actual hex digest of the content of $asset
+
 =cut
 
 sub digest {
@@ -184,6 +193,12 @@ sub mtime {
     return $stat->mtime;
 }
 
+=head2 $asset->key
+
+Returns the unique key for the $asset. Usually the path of the $asset, but for content-based assets returns a value based off of $asset->digest
+
+=cut
+
 sub key {
     my $self = shift;
     if ($self->{rsc}) {
@@ -194,11 +209,23 @@ sub key {
     }
 }
 
-1;
+=head2 $asset->hide
+
+Hide $asset (mark it as hidden). That is, don't include $asset during export
+
+=cut
 
 sub hide {
     shift->{hidden} = 1;
 }
+
+=head2 $asset->inline
+
+Returns whether $asset is inline (should be embedded into the document) or external.
+
+If an argument is given, then it will set whether $asset is inline or not (1 for inline, 0 for external).
+
+=cut
 
 sub inline {
     my $self = shift;

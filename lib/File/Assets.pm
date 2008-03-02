@@ -32,7 +32,7 @@ our $VERSION = '0.032';
 
     [% WRAPPER page.tt %]
 
-    [% assets.include("/static/special-style.css") %]
+    [% assets.include("/static/special-style.css", 100) %] # The "100" is the rank, which makes sure it is exported after other assets
 
     # ... finally, in your "main" template:
 
@@ -69,6 +69,20 @@ File::Assets is a tool for managing JavaScript and CSS assets in a (web) applica
 This package has the added bonus of assisting with minification and filtering of assets. Support is built-in for YUI Compressor (L<http://developer.yahoo.com/yui/compressor/>), L<JavaScript::Minifier>, and L<CSS::Minifier>. Filtering is fairly straightforward to implement, so it's a good place to start if need a JavaScript or CSS preprocessor (e.g. something like HAML L<http://haml.hamptoncatlin.com/>)
 
 File::Assets was built with L<Catalyst> in mind, although this package is framework agnostic.
+
+=head2 CSS
+
+A cascading style sheet asset will be given the media type of "screen" if none is explicitly given.
+
+This default is recommeded by L<http://www.w3.org/TR/REC-CSS2/media.html>
+
+However, if this causes a problem with some user agents, it might be changed in the future (back to a "nil" media type).
+
+To control the media type of a text/css asset, you can do the following:
+
+    $assets->include("/path/to/printstyle.css", ..., { media => "print" }); # The asset will be exported with the print-media indicator
+
+    $assets->include_content($content, "text/css", ..., { media => "projection" });
 
 =head1 METHODS
 
@@ -128,9 +142,9 @@ sub new {
     return $self;
 }
 
-=head2 $asset = $assets->include(<path>, [ <rank>, <type> ])
+=head2 $asset = $assets->include(<path>, [ <rank>, <type>, { ... } ])
 
-=head2 $asset = $assets->include_path(<path>, [ <rank>, <type> ])
+=head2 $asset = $assets->include_path(<path>, [ <rank>, <type>, { ... } ])
 
 Include an asset located at "<base.dir>/<path>" for processing. The asset will be exported as "<base.uri>/<path>".
 
@@ -140,7 +154,30 @@ with a neutral rank of 0.
 
 Also, optionally, you can specify a type override as the third argument.
 
+By default, the newly created $asset is NOT inline.
+
 Returns the newly created asset.
+
+NOTE: See below for how the extra hash on the end is handled
+
+=head2 $asset = $assets->include({ ... })
+
+Another way to invoke include is by passing in a hash reference.
+
+The hash reference should contain the follwing information:
+    
+    path        # The path to the asset file, relative to base
+    content     # The content of the asset
+
+    type        # Optional if a path is given, required for content
+    rank        # Optional, 0 by default (Less than zero is earlier, greater than zero is later)
+    base        # Optional, by default the base of $assets
+    inline      # Optional, by default true if content was given, false is a path was given
+
+You can also pass extra information through the hash. Any extra information will be bundled in the ->attributes hash of $asset.
+For example, you can control the media type of a text/css asset by doing something like:
+
+    $assets->include("/path/to/printstyle.css", ..., { media => "print" }) # The asset will be exported with the print-media indicator
 
 =cut
 
@@ -179,6 +216,20 @@ sub include {
 
     return $asset;
 }
+
+=head2 $asset = $assets->include_content(<content>, [ <type>, <rank>, { ... } ])
+
+Include an asset with some content and of the supplied type. The value of <content> can be a "plain" string or a scalar reference.
+
+See ->include for more information on <rank>.
+
+By default, the newly created $asset is inline.
+
+Returns the newly created asset.
+
+NOTE: The order of the <type> and <rank> arguments are reversed from ->include and ->include_path
+
+=cut
 
 sub include_content {
     my $self = shift;
@@ -387,26 +438,6 @@ sub _exports {
 
     return map { $_->exports } values %bucket; # Mmmm... "values bucket" ...time for some KFC
 }
-
-=pod
-
-    if ($filter->fit($bucket)) {
-        $bucket->add($filter);
-    }
-
-    ...
-
-    my %filter;
-    my $filter = $filter{$new_filter->signature};
-    if (! $filter || $new_filter->is_more_specific_than($filter)) {
-        # Replace the filter
-    }
-
-    ...
-
-    _get_writer_path
-
-=cut
 
 sub set_output_path_scheme {
     my $self = shift;
