@@ -20,30 +20,30 @@ $assets->filter_clear;
 
 ok($filter = $assets->filter([ "TestCollect" ]));
 compare($assets->export, qw(
+    http://example.com/static/assets.css
     http://example.com/static/assets.js
-    http://example.com/static/assets-screen.css
 ));
 
-is($scratch->read("static/assets-screen.css"), "/* Everything is replaced with this! */");
+is($scratch->read("static/assets.css"), "/* Everything is replaced with this! */");
 
 $assets->name("base");
 compare($assets->export, qw(
+    http://example.com/static/base.css
     http://example.com/static/base.js
-    http://example.com/static/base-screen.css
 ));
 
 $assets->set_output_path_scheme([
     [ "*" => "static/xyzzy" ],
 ]);
 compare($assets->export, qw(
-    http://example.com/static/static/xyzzy.js
     http://example.com/static/static/xyzzy.css
+    http://example.com/static/static/xyzzy.js
 ));
 
 $assets->set_output_path_scheme([
     [ "*" => "static/xyzzy/" ],
 ]);
 compare($assets->export, qw(
+    http://example.com/static/static/xyzzy/base.css
     http://example.com/static/static/xyzzy/base.js
-    http://example.com/static/static/xyzzy/base-screen.css
 ));

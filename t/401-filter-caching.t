@@ -11,7 +11,7 @@ $assets->include("css/apple.css");
 $assets->include("css/banana.css");
 $assets->include("css/grape.css");
 
-my $path = "static/assets-screen.css";
+my $path = "static/assets.css";
 ok(my $filter = $assets->filter([ "Concat" ]));
 compare($assets->export, "http://example.com/$path");
 

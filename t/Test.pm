@@ -30,27 +30,32 @@ sub compare ($;@) {
     my $expect = shift;
     my @content;
     while (@_) {
+        my %attributes;
         if (! ref $_[0]) {
             my $href = shift;
-            my ($kind) = $href =~ m/\.([^.]+)$/;
-            $kind = "css-screen" if $kind eq "css";
+            my $kind;
+            $kind = $1 if $href =~ s/^([\w-]+);//;
+            ($kind) = $href =~ m/\.([^.]+)$/ unless $kind;
+            %attributes = (%attributes, %{ shift() }) if ref $_[0] eq "HASH";
             if ($kind eq "js") {
-                push @content, SCRIPT({ type => "text/javascript", src => $href });
+                push @content, SCRIPT({ type => "text/javascript", src => $href, %attributes });
             }
             elsif ($kind =~ m/^css\b/) {
                 my ($type, $media) = split m/-/, $kind;
-                push @content, LINK({ rel => "stylesheet", type => "text/css", media => $media, href => $href });
+                $attributes{media} = $media if defined $media;
+                push @content, LINK({ rel => "stylesheet", type => "text/css", href => $href, %attributes });
             }
         }
         elsif (ref $_[0] eq "ARRAY") {
-            my ($kind, $content) = @{ shift() };
-            $kind = "css-screen" if $kind eq "css";
+            my ($kind, $content, $attributes) = @{ shift() };
+            $attributes ||= {};
+            %attributes = (%attributes, %$attributes);
             if ($kind eq "js") {
                 push @content, SCRIPT({ type => "text/javascript", _ => "\n$content" });
             }
             elsif ($kind =~ m/^css\b/) {
                 my ($type, $media) = split m/-/, $kind;
-                push @content, STYLE({ type => "text/css", media => $media, _ => "\n$content" });
+                push @content, STYLE({ type => "text/css", _ => "\n$content" });
             }
         }
         else {

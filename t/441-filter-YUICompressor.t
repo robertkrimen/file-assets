@@ -27,16 +27,16 @@ $assets->include("js/apple.js");
 ok($filter = $assets->filter(css => "yuicompressor:./yuicompressor.jar"));
 is($filter->cfg->{jar}, "./yuicompressor.jar");
 compare($assets->export, qw(
-    http://example.com/static/js/apple.js
     http://example.com/static/YUI.css
+    http://example.com/static/js/apple.js
 ));
 ok($scratch->exists("static/YUI.css"));
 is(-s $scratch->file("static/YUI.css"), 0);
 
 ok($assets->filter(js => "yuicompressor" => { jar => "./yuicompressor.jar" }));
 compare($assets->export, qw(
-    http://example.com/static/YUI.js
     http://example.com/static/YUI.css
+    http://example.com/static/YUI.js
 ));
 ok($scratch->exists("static/YUI.js"));
 is(-s $scratch->file("static/YUI.js"), 0);
@@ -50,9 +50,9 @@ $assets->{output_path_scheme} = [
 
 ok($assets->filter(js => "yuicompressor" => { jar => "./yuicompressor.jar" }));
 compare($assets->export, qw(
-    http://example.com/static/xyzzy/YUI.js
     http://example.com/static/css/apple.css
     http://example.com/static/css/banana.css
+    http://example.com/static/xyzzy/YUI.js
 ));
 ok($scratch->exists("static/xyzzy/YUI.js"));
 is(-s $scratch->file("static/xyzzy/YUI.js"), 0);
@@ -64,7 +64,7 @@ my $assets = t::Test->assets(
         [ "css" => File::Assets::Filter::Concat->new, ],
     ],
     output_path => [
-        [ "css-screen" => "$digest" ],
+        [ "css" => "$digest" ],
     ],
 );
 my $scratch = t::Test->scratch;

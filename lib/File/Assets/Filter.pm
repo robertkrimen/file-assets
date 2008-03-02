@@ -26,6 +26,7 @@ sub new_parse {
     my $class = shift;
     return unless my $filter = shift;
 
+    $filter =~ s/^yui-compressor\b/yuicompressor/; # A special case
     my $kind = lc $class;
     $kind =~ s/^File::Assets::Filter:://i;
     $kind =~ s/::/-/g;

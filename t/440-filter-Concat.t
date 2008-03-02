@@ -12,7 +12,7 @@ my $assets = t::Test->assets(
         [ "css" => File::Assets::Filter::Concat->new, ],
     ],
     output_path => [
-        [ "css-screen" => "$digest" ],
+        [ "css" => "$digest" ],
     ],
 );
 my $scratch = t::Test->scratch;
@@ -21,9 +21,10 @@ $assets->include("css/apple.css");
 $assets->include("css/banana.css");
 $assets->include("js/apple.js");
 
-compare($assets->export, qw(
-    http://example.com/static/js/apple.js
-), "http://example.com/static/$digest.css");
+compare($assets->export,
+    "http://example.com/static/$digest.css",
+    "http://example.com/static/js/apple.js",
+);
 
 ok($scratch->exists("static/$digest.css"));
 ok(-s $scratch->file("static/$digest.css"));

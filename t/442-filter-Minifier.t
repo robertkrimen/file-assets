@@ -26,19 +26,19 @@ use t::Test;
 
     ok($filter = $assets->filter(css => "minifier"));
     compare($assets->export, qw(
+        http://example.com/static/assets.css
         http://example.com/static/js/apple.js
         http://example.com/static/js/cherry.js
-        http://example.com/static/assets-screen.css
     ));
-    ok($scratch->exists("static/assets-screen.css"));
-    ok(-s $scratch->file("static/assets-screen.css"));
-    like($scratch->read("static/assets-screen.css"), qr/div\.cherry/);
-    like($scratch->read("static/assets-screen.css"), qr/font-weight/);
+    ok($scratch->exists("static/assets.css"));
+    ok(-s $scratch->file("static/assets.css"));
+    like($scratch->read("static/assets.css"), qr/div\.cherry/);
+    like($scratch->read("static/assets.css"), qr/font-weight/);
 
     ok($filter = $assets->filter(js => "minifier-javascript"));
     compare($assets->export, qw(
+        http://example.com/static/assets.css
         http://example.com/static/assets.js
-        http://example.com/static/assets-screen.css
     ));
     ok($scratch->exists("static/assets.js"));
     ok(-s $scratch->file("static/assets.js"));
@@ -49,8 +49,8 @@ use t::Test;
 
     ok($filter = $assets->filter("minifier"));
     compare($assets->export, qw(
+        http://example.com/static/assets.css
         http://example.com/static/assets.js
-        http://example.com/static/assets-screen.css
     ));
     ok($filter = $assets->filter(js => "minifier-javascript"));
     ok($scratch->exists("static/assets.js"));
@@ -78,13 +78,13 @@ use t::Test;
     is(-s $scratch->file("static/css/cherry.css"), 150);
 
     compare($assets->export, qw(
+        http://example.com/static/assets.css
         http://example.com/static/assets.js
-        http://example.com/static/assets-screen.css
     ));
-    ok($scratch->exists("static/assets-screen.css"));
-    ok(-s $scratch->file("static/assets-screen.css"));
-    like($scratch->read("static/assets-screen.css"), qr/div\.cherry/);
-    like($scratch->read("static/assets-screen.css"), qr/font-weight/);
+    ok($scratch->exists("static/assets.css"));
+    ok(-s $scratch->file("static/assets.css"));
+    like($scratch->read("static/assets.css"), qr/div\.cherry/);
+    like($scratch->read("static/assets.css"), qr/font-weight/);
     ok($scratch->exists("static/assets.js"));
     ok(-s $scratch->file("static/assets.js"));
     like($scratch->read("static/assets.js"), qr/"Nothing happens\."/);

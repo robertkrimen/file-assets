@@ -12,7 +12,7 @@ my ($asset, $kind);
 $asset = $assets->include("apple.css");
 $kind = File::Assets->kind($asset);
 ok($kind);
-is($kind->kind, "css-screen");
+is($kind->kind, "css");
 
 is(File::Assets->kind($assets->include("apple.js"))->kind, "js");
 

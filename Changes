@@ -1,8 +1,13 @@
 TODO:
- - Allow extra attributes to be associated with assets
- - Implement css media functionality
- - More documentation
  - "Duplicate assets (via ->include(...)" testing?
+
+0.050 Sunday March 02 00:29:57 PST 2008:
+ - Major "guts" rewrite. The interface is largely the same,
+   but some heavy lifting had to be done to support different text/css media types.
+ - Inline content is supported via ->include_content(...) or ->include(content => ...)
+ - Passes through unrecognized attributes when generating HTML
+ - Filters and output path selection is handled in a somewhat better (though not perfect, IMHO)
+   fashion. Still need to write the documentation for this part.
 
 0.032 Tuesday January 22 14:01:12 PST 2008:
  - Some minor tweaking of the timing of the caching test

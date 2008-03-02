@@ -15,7 +15,7 @@ compare($assets->export, qw(
 $assets->include("apple.js");
 $assets->include("banana.css");
 compare($assets->export, qw(
-    http://example.com/static/apple.js
     http://example.com/static/apple.css
     http://example.com/static/banana.css
+    http://example.com/static/apple.js
 ));

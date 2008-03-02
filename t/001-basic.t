@@ -16,8 +16,8 @@ ok($assets->include("css/apple.css"));
 ok($assets->include("js/apple.js"));
 
 compare($assets->export, qw(
-    http://example.com/static/js/apple.js
     http://example.com/static/css/apple.css
+    http://example.com/static/js/apple.js
 ));
 
 compare($assets->export('css'), qw(
@@ -31,9 +31,9 @@ compare($assets->export('js'), qw(
 ok($assets->include("css/banana.css"));
 
 compare($assets->export, qw(
-    http://example.com/static/js/apple.js
     http://example.com/static/css/apple.css
     http://example.com/static/css/banana.css
+    http://example.com/static/js/apple.js
 ));
 
 use Test::Memory::Cycle;

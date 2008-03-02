@@ -9,11 +9,11 @@ File::Assets - Manage .css and .js assets in a web application
 
 =head1 VERSION
 
-Version 0.032
+Version 0.050
 
 =cut
 
-our $VERSION = '0.032';
+our $VERSION = '0.050';
 
 =head1 SYNOPSIS
 
@@ -68,21 +68,44 @@ File::Assets is a tool for managing JavaScript and CSS assets in a (web) applica
 
 This package has the added bonus of assisting with minification and filtering of assets. Support is built-in for YUI Compressor (L<http://developer.yahoo.com/yui/compressor/>), L<JavaScript::Minifier>, and L<CSS::Minifier>. Filtering is fairly straightforward to implement, so it's a good place to start if need a JavaScript or CSS preprocessor (e.g. something like HAML L<http://haml.hamptoncatlin.com/>)
 
-File::Assets was built with L<Catalyst> in mind, although this package is framework agnostic.
+File::Assets was built with L<Catalyst> in mind, although this package is framework agnostic. Look at L<Catalyst::Plugin::Assets> for an easy way to integrate File::Assets with Catalyst.
 
-=head2 CSS
+=head1 USAGE
 
-A cascading style sheet asset will be given the media type of "screen" if none is explicitly given.
+=head2 Cascading style sheets and their media types
 
-This default is recommeded by L<http://www.w3.org/TR/REC-CSS2/media.html>
+A cascading style sheet can be one of many different media types. For more information, look here: L<http://www.w3.org/TR/REC-CSS2/media.html>
 
-However, if this causes a problem with some user agents, it might be changed in the future (back to a "nil" media type).
+This can cause a problem when minifying, since, for example, you can't bundle a media type of screen with a media type of print. File::Assets handles this situation by treating .css files of different media types separately. 
 
 To control the media type of a text/css asset, you can do the following:
 
     $assets->include("/path/to/printstyle.css", ..., { media => "print" }); # The asset will be exported with the print-media indicator
 
-    $assets->include_content($content, "text/css", ..., { media => "projection" });
+    $assets->include_content($content, "text/css", ..., { media => "screen" }); # Ditto, but for the screen type
+
+=head2 Including assets in the middle of processing a Template Toolkit template
+
+Sometimes, in the middle of a TT template, you want to include a new asset. Usually you would do something like this:
+
+    [% assets.include("/include/style.css") %]  
+
+But then this will show up in your output, because ->include returns an object:
+
+    File::Assets::Asset=HASH(0x99047e4)
+
+The way around this is to use the TT "CALL" directive, as in the following:
+
+    [% CALL assets.include("/include/style.css") %]
+
+=head2 Avoid minifying assets on every request (if you minify)
+
+By default, File::Assets will avoid re-minifying assets if nothing in the files have changed. However, in a web application, this can be a problem if you serve up two web pages that have different assets. That's because File::Assets will detect different assets being served in page A versus assets being served in page B (think AJAX interface vs. plain HTML with some CSS). The way around this problem is to name your assets object with a unique name per assets bundle. By default, the name is "assets", but can be changed with $assets->name(<a new name>):
+
+    my $assets = File::Assets->new(...);
+    $assets->name("standard");
+
+You can change the name of the assets at anytime before exporting.
 
 =head1 METHODS
 
@@ -129,7 +152,6 @@ sub new {
     $self->{_registry_hash} = \%registry;
 
     $self->{name} = $_{name};
-    $self->{output} = $_{output};
 
     $self->{output_asset_scheme} = $_{output_asset} || $_{output_asset_scheme} || [];
     $self->{output_path_scheme} = $_{output_path} || $_{output_path_scheme} || [];
@@ -249,6 +271,23 @@ sub include_content {
     return $asset;
 }
 
+=head2 $name = $assets->name([ <name> ])
+
+Retrieve and/or change the "name" of $assets; by default it is "assets"
+
+This is useful for controlling the name of minified assets files.
+
+Returns the name of $assets
+
+=cut
+
+sub name {
+    my $self = shift;
+    $self->{name} = shift if @_;
+    my $name = $self->{name};
+    return defined $name && length $name ? $name : "assets";
+}
+
 =head2 $html = $assets->export([ <type> ])
 
 Generate and return HTML for the assets of <type>. If no type is specified, then assets of every type are exported.
@@ -281,14 +320,14 @@ sub _export_html {
 
     my @content;
     for my $asset (@$assets) {
+        my %attributes = %{ $asset->attributes };
         if ($asset->type->type eq "text/css") {
 #        if ($asset->kind->extension eq "css") {
-            my $media = $asset->attributes->{media} || "screen";
             if (! $asset->inline) {
-                push @content, LINK({ rel => "stylesheet", type => $asset->type->type, media => $asset->attributes->{media} || "screen", href => $asset->uri });
+                push @content, LINK({ rel => "stylesheet", type => $asset->type->type, href => $asset->uri, %attributes });
             }
             else {
-                push @content, STYLE({ type => $asset->type->type, media => $asset->attributes->{media} || "screen", _ => "\n${ $asset->content }" });
+                push @content, STYLE({ type => $asset->type->type, %attributes, _ => "\n${ $asset->content }" });
             }
         }
 #        elsif ($asset->kind->extension eq "js") {
@@ -296,10 +335,10 @@ sub _export_html {
                 $asset->type->type eq "application/x-javascript" || # Handle different MIME::Types versions.
                 $asset->type->type =~ m/\bjavascript\b/) {
             if (! $asset->inline) {
-                push @content, SCRIPT({ type => "text/javascript", src => $asset->uri });
+                push @content, SCRIPT({ type => "text/javascript", src => $asset->uri, %attributes });
             }
             else {
-                push @content, SCRIPT({ type => "text/javascript", _ => "\n${ $asset->content }" });
+                push @content, SCRIPT({ type => "text/javascript", %attributes, _ => "\n${ $asset->content }" });
             }
         }
 
@@ -366,7 +405,7 @@ sub store {
 
 Fetch the asset located at <path>
 
-Returns undef if nothing at <path> exists yet.
+Returns undef if nothing at <path> exists yet
 
 =cut
 
@@ -377,19 +416,6 @@ sub fetch {
     return $self->_registry_hash->{$key};
 }
 
-=head2 $name = $assets->name([ <name> ])
-
-The name of the assets, by default it is "assets".
-
-=cut
-
-sub name {
-    my $self = shift;
-    $self->{name} = shift if @_;
-    my $name = $self->{name};
-    return defined $name && length $name ? $name : "assets";
-}
-
 sub kind {
     my $self = shift;
     my $asset = shift;
@@ -397,8 +423,9 @@ sub kind {
 
     my $kind = File::Assets::Util->type_extension($type);
     if (File::Assets::Util->same_type("css", $type)) {
-        my $media = $asset->attributes->{media} || "screen"; # W3C says to assume screen by default, so we'll do the same.
-        $kind = "$kind-$media";
+#        my $media = $asset->attributes->{media} || "screen"; # W3C says to assume screen by default, so we'll do the same.
+        my $media = $asset->attributes->{media};
+        $kind = "$kind-$media" if defined $media && length $media;
     }
 
     return File::Assets::Kind->new($kind, $type);
@@ -426,7 +453,9 @@ sub _exports {
 
     my $filter_scheme = $self->{filter_scheme};
     my @global = @{ $filter_scheme->{'*'} || [] };
-    while (my ($kind, $bucket) = each %bucket) {
+    my @bucket;
+    for my $kind (sort keys %bucket) {
+        push @bucket, my $bucket = $bucket{$kind};
         $bucket->add_filter($_) for @global;
         my $head = $bucket->kind->head;
         for my $category (sort grep { ! m/^$head-/ } keys %$filter_scheme) {
@@ -436,7 +465,7 @@ sub _exports {
         }
     }
 
-    return map { $_->exports } values %bucket; # Mmmm... "values bucket" ...time for some KFC
+    return map { $_->exports } @bucket;
 }
 
 sub set_output_path_scheme {

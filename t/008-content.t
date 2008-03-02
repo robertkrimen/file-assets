@@ -29,13 +29,13 @@ _END_
     my $assets = assets;
 
     compare($assets->export, qw(
-            http://example.com/static/js/apple.js
             http://example.com/static/css/apple.css
         ), [ css => <<_END_ ],
 div {
     background: red;
 }
 _END_
+            "http://example.com/static/js/apple.js"
     );
 
     compare($assets->export('css'), qw(
@@ -55,7 +55,6 @@ _END_
     ok($assets->include("css/banana.css"));
 
     compare($assets->export, qw(
-            http://example.com/static/js/apple.js
             http://example.com/static/css/apple.css
         ), [ css => <<_END_ ],
 div {
@@ -64,6 +63,7 @@ div {
 _END_
         qw(
             http://example.com/static/css/banana.css
+            http://example.com/static/js/apple.js
     ));
 
     memory_cycle_ok($assets);
@@ -79,9 +79,10 @@ _END_
     my $digest = "4622fcfb3d29438ce9298d288fdcc57e";
     ok($assets->include("css/banana.css"));
 
-    compare($assets->export, qw(
-            http://example.com/static/js/apple.js
-    ), "http://example.com/static/$digest.css");
+    compare($assets->export,
+        "http://example.com/static/$digest.css",
+        "http://example.com/static/js/apple.js",
+    );
 
     ok($scratch->exists("static/$digest.css"));
     ok(-s $scratch->file("static/$digest.css"));
@@ -108,9 +109,10 @@ SKIP: {
     my $digest = "4622fcfb3d29438ce9298d288fdcc57e";
     ok($assets->include("css/banana.css"));
 
-    compare($assets->export, qw(
-            http://example.com/static/js/apple.js
-    ), "http://example.com/static/$digest.css");
+    compare($assets->export,
+        "http://example.com/static/$digest.css",
+        "http://example.com/static/js/apple.js",
+    );
     ok($scratch->exists("static/$digest.css"));
     ok(-s $scratch->file("static/$digest.css"));
     is($scratch->read("static/$digest.css"), 'div{background:red;}');
@@ -142,9 +144,7 @@ span {
 }
 _END_
 
-    compare($assets->export, qw(
-            http://example.com/static/js/apple.js
-        ),
+    compare($assets->export,
         "http://example.com/static/$digest.css",
         [ css => <<_END_ ],
 div {
@@ -156,11 +156,10 @@ span {
     margin: 1em;
 }
 _END_
+        "http://example.com/static/js/apple.js",
     );
 
-    compare($assets->export, qw(
-            http://example.com/static/js/apple.js
-        ),
+    compare($assets->export,
         "http://example.com/static/$digest.css",
         [ css => <<_END_ ],
 div {
@@ -172,6 +171,7 @@ span {
     margin: 1em;
 }
 _END_
+        "http://example.com/static/js/apple.js",
     );
 
     ok($scratch->exists("static/$digest.css"));
