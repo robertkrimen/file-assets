@@ -29,3 +29,5 @@ is(output_asset_path(\"xyzzy"), "/static/xyzzy");
 is(output_asset_path(\"/xyzzy"), "/xyzzy");
 is(output_asset_path("/xyzzy"), "/xyzzy.css");
 is(output_asset_path("/%n/%e/xyzzy.%e"), "/assets/css/xyzzy.css");
+is(output_asset_path("built/1.2.4.%e"), "/static/built/1.2.4.css");
+is(output_asset_path("built/%n.1.2.4.%e"), "/static/built/assets.1.2.4.css");
