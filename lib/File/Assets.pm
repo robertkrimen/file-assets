@@ -9,11 +9,11 @@ File::Assets - Manage .css and .js assets in a web application
 
 =head1 VERSION
 
-Version 0.050
+Version 0.051
 
 =cut
 
-our $VERSION = '0.050';
+our $VERSION = '0.051';
 
 =head1 SYNOPSIS
 
@@ -335,7 +335,7 @@ sub _export_html {
                 $asset->type->type eq "application/x-javascript" || # Handle different MIME::Types versions.
                 $asset->type->type =~ m/\bjavascript\b/) {
             if (! $asset->inline) {
-                push @content, SCRIPT({ type => "text/javascript", src => $asset->uri, %attributes });
+                push @content, SCRIPT({ type => "text/javascript", src => $asset->uri, _ => "", %attributes });
             }
             else {
                 push @content, SCRIPT({ type => "text/javascript", %attributes, _ => "\n${ $asset->content }" });

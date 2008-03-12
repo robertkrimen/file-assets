@@ -1,6 +1,11 @@
 TODO:
  - "Duplicate assets (via ->include(...)" testing?
 
+0.051 Tuesday March 11 21:28:07 PDT 2008:
+ - Fixed issue where HTML::Declare was using self-closing <script/> HTML, which 
+   most browsers don't like (thanks patspam):
+   http://webbugtrack.blogspot.com/2007/08/bug-153-self-closing-script-tag-issues.html
+
 0.050 Sunday March 02 00:29:57 PST 2008:
  - Major "guts" rewrite. The interface is largely the same,
    but some heavy lifting had to be done to support different text/css media types.
