@@ -338,7 +338,7 @@ sub _export_html {
                 push @content, SCRIPT({ type => "text/javascript", src => $asset->uri, _ => "", %attributes });
             }
             else {
-                push @content, SCRIPT({ type => "text/javascript", %attributes, _ => "\n${ $asset->content }" });
+                push @content, SCRIPT({ type => "text/javascript", %attributes, _ => [ "\n${ $asset->content }" ] });
             }
         }
 
