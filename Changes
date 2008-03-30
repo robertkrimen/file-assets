@@ -1,6 +1,13 @@
 TODO:
  - "Duplicate assets (via ->include(...)" testing?
 
+0.055 Saturday March 29 22:57:47 PDT 2008:
+ - Fixed a problem with inline content being escaped by HTML::Declare (thanks James Munson)
+ - ->include and ->include_content can now accept simple HTML of the form <script>script> or
+   <style></style>
+ - Will not detect for rank/type misordering in ->include, ->include_path, and ->include_content
+   It should just do-the-right-thing now.
+
 0.051 Tuesday March 11 21:28:07 PDT 2008:
  - Fixed issue where HTML::Declare was using self-closing <script/> HTML, which 
    most browsers don't like (thanks patspam):

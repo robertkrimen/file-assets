@@ -4,6 +4,8 @@ use warnings;
 use strict;
 
 use File::Assets::Util;
+use XML::Tiny;
+use IO::Scalar;
 use Carp::Clan qw/^File::Assets/;
 use Object::Tiny qw/type rank attributes hidden rsc/;
 
@@ -27,12 +29,36 @@ Creates a new File::Asset. You probably don't want to use this, create a L<File:
 
 =cut
 
+sub _html_parse ($) {
+    XML::Tiny::parsefile(IO::Scalar->new(shift));
+}
+
 sub new {
     my $self = bless {}, shift;
     my $asset = @_ == 1 && ref $_[0] eq "HASH" ? shift : { @_ };
 
     my $content = delete $asset->{content};
     $content = ref $content eq "SCALAR" ? $$content : $content;
+    if (defined $content && $content =~ m/^\s*</) { # Looks like tagged content (<script> or <style>)
+        my $tag = _html_parse \$content;
+        croak "Unable to parse $content" unless $tag && $tag->[0];
+        $tag = $tag->[0];
+        my $type = delete $tag->{attrib}->{type};
+        if (! $type) {
+            if ($tag->{name} =~ m/^script$/i) {
+                $type = "js"
+            }
+            elsif ($tag->{name} =~ m/^style$/i) {
+                $type = "css"
+            }
+        }
+        $asset->{type} = $type unless defined $asset->{type};
+        while (my ($name, $value) = each %{ $tag->{attrib} }) {
+            $asset->{$name} = $value unless exists $asset->{$name};
+        }
+        $content = $tag->{content}->[0]->{content};
+        $content = "" unless defined $content;
+    }
     $self->{content} = \$content;
 
     my ($path, $rsc, $base) = delete @$asset{qw/path rsc base/};
@@ -60,7 +86,7 @@ sub new {
         }
         $self->{type} = $type || File::Assets::Util->parse_type($path) or croak "Don't know type for asset ($path)";
     }
-    elsif ($content) {
+    elsif (defined $content) {
         $inline = 1;
         croak "Don't have a type for this asset" unless $type;
         $self->{type} = $type;

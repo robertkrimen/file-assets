@@ -9,11 +9,11 @@ File::Assets - Manage .css and .js assets in a web application
 
 =head1 VERSION
 
-Version 0.051
+Version 0.055
 
 =cut
 
-our $VERSION = '0.051';
+our $VERSION = '0.055';
 
 =head1 SYNOPSIS
 
@@ -33,6 +33,13 @@ our $VERSION = '0.051';
     [% WRAPPER page.tt %]
 
     [% assets.include("/static/special-style.css", 100) %] # The "100" is the rank, which makes sure it is exported after other assets
+
+    [% asset = BLOCK %]
+    <style media="print">
+    body { font: serif; }
+    </style>
+    [% END %]
+    [% assets.include(asset) %] # This will include the css into an inline asset with the media type of "print"
 
     # ... finally, in your "main" template:
 
@@ -168,7 +175,10 @@ sub new {
 
 =head2 $asset = $assets->include_path(<path>, [ <rank>, <type>, { ... } ])
 
-Include an asset located at "<base.dir>/<path>" for processing. The asset will be exported as "<base.uri>/<path>".
+First, if <path> is a scalar reference or "looks like" some HTML (starts with a angle bracket, e.g.: <script></script>), then
+it will be treated as inline content.
+
+Otherwise, this will include an asset located at "<base.dir>/<path>" for processing. The asset will be exported as "<base.uri>/<path>"
 
 Optionally, you can specify a rank, where a lower number (i.e. -2, -100) causes the asset to appear earlier in the exports
 list, and a higher number (i.e. 6, 39) causes the asset to appear later in the exports list. By default, all assets start out
@@ -201,11 +211,27 @@ For example, you can control the media type of a text/css asset by doing somethi
 
     $assets->include("/path/to/printstyle.css", ..., { media => "print" }) # The asset will be exported with the print-media indicator
 
+NOTE: The order of <rank> and <type> doesn't really matter, since we can detect whether something looks like a rank (number) or
+not, and correct for it (and it does).
+
 =cut
 
 sub include_path {
     my $self = shift;
     return $self->include(@_);
+}
+
+my $rankish = qr/^[\-\+]?[\.\d]+$/; # A regular expression for a string that looks like a rank
+sub _correct_for_proper_rank_and_type_order ($) {
+    my $asset = shift;
+    if (defined $asset->{type} && $asset->{type} =~ $rankish ||
+        defined $asset->{rank} && $asset->{rank} !~ $rankish) {
+        # Looks like someone entered a rank as the type or vice versa, so we'll switch them
+        my $rank = delete $asset->{type};
+        my $type = delete $asset->{rank};
+        $asset->{type} = $type if defined $type;
+        $asset->{rank} = $rank if defined $rank;
+    }
 }
 
 sub include {
@@ -215,7 +241,7 @@ sub include {
     if (ref $_[0] ne "HASH") {
         $path = shift;
         croak "Don't have a path to include" unless defined $path && length $path;
-        if (ref $path eq "SCALAR") {
+        if (ref $path eq "SCALAR" || $path =~ m/^\s*</) {
             push @asset, content => $path;
         }
         else {
@@ -229,8 +255,10 @@ sub include {
         push @asset, $_ => shift;
     }
     push @asset, %{ $_[0] } if @_ && ref $_[0] eq "HASH";
+    my %asset = @asset;
+    _correct_for_proper_rank_and_type_order \%asset;
 
-    my $asset = File::Assets::Asset->new(base => $self->rsc, @asset);
+    my $asset = File::Assets::Asset->new(base => $self->rsc, %asset);
 
     return $self->fetch($asset->path) if $asset->path && $self->exists($asset->path);
 
@@ -243,6 +271,20 @@ sub include {
 
 Include an asset with some content and of the supplied type. The value of <content> can be a "plain" string or a scalar reference.
 
+You can include content that looks like HTML:
+
+    <style media="print">
+    body {
+        font: serif;
+    }
+    </style>
+
+In the above case, <type> is optional, as File::Assets can detect from the tag that you're supplying a style sheet. Furthermore, 
+the method will find all the attributes in the tag and put them into the asset. So the resulting asset from including the above
+will have a type of "text/css" and media of "print".
+
+For now, only <style> and <script> will map to types (.css and .js, respectively)
+
 See ->include for more information on <rank>.
 
 By default, the newly created $asset is inline.
@@ -250,6 +292,8 @@ By default, the newly created $asset is inline.
 Returns the newly created asset.
 
 NOTE: The order of the <type> and <rank> arguments are reversed from ->include and ->include_path
+Still, the order of <rank> and <type> doesn't really matter, since we can detect whether something looks like a rank (number) or
+not, and correct for it (and it does).
 
 =cut
 
@@ -262,9 +306,10 @@ sub include_content {
         push @asset, $_ => shift;
     }
     push @asset, %{ $_[0] } if @_ && ref $_[0] eq "HASH";
+    my %asset = @asset;
+    _correct_for_proper_rank_and_type_order \%asset;
 
-    #my $asset = File::Assets::Asset::Content->new(@include);
-    my $asset = File::Assets::Asset->new(@asset);
+    my $asset = File::Assets::Asset->new(%asset);
 
     $self->store($asset);
 
@@ -327,7 +372,7 @@ sub _export_html {
                 push @content, LINK({ rel => "stylesheet", type => $asset->type->type, href => $asset->uri, %attributes });
             }
             else {
-                push @content, STYLE({ type => $asset->type->type, %attributes, _ => "\n${ $asset->content }" });
+                push @content, STYLE({ type => $asset->type->type, %attributes, _ => [ "\n${ $asset->content }" ] });
             }
         }
 #        elsif ($asset->kind->extension eq "js") {

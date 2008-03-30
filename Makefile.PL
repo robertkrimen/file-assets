@@ -18,6 +18,8 @@ requires 'Carp::Clan';
 requires 'Object::Tiny';
 requires 'Class::Data::Inheritable';
 requires 'HTML::Declare';
+requires 'XML::Tiny';
+requires 'IO::Scalar';
 
 recommends 'JavaScript::Minifier';
 recommends 'CSS::Minifier';
