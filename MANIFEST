@@ -47,6 +47,8 @@ t/401-filter-caching.t
 t/440-filter-Concat.t
 t/441-filter-YUICompressor.t
 t/442-filter-Minifier.t
+t/9000-x-javascript.t
+t/9001-inline-content-escaping.t
 t/author/boilerplate.t
 t/author/pod-coverage.t
 t/author/pod.t
