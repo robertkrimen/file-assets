@@ -16,6 +16,7 @@ div {
     background: "#fff"
 }
 </style>
+
 _END_
 
 is($assets->export."\n", <<_END_);
