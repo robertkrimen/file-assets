@@ -1,6 +1,9 @@
 TODO:
  - "Duplicate assets (via ->include(...)" testing?
 
+0.056 Saturday April 19 02:57:44 PDT 2008:
+ - Bump for packaging error (*grumble* *grumble* META.yaml inc/ *grumble*)
+
 0.055 Saturday March 29 22:57:47 PDT 2008:
  - Fixed a problem with inline content being escaped by HTML::Declare (thanks James Munson)
  - ->include and ->include_content can now accept simple HTML of the form <script>script> or

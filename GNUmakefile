@@ -2,7 +2,12 @@
 
 all: test
 
-dist distclean test tardist: Makefile
+dist:
+	rm -rf inc META.yaml
+	perl Makefile.PL
+	$(MAKE) -f Makefile dist
+
+distclean test tardist: Makefile
 	make -f $< $@
 
 Makefile: Makefile.PL
