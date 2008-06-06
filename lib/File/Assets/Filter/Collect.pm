@@ -61,8 +61,8 @@ sub process {
     my $self = shift;
     $self->SUPER::process(@_);
     if (my $digester = $self->content_digester) {
-        my $asset = shift;
-        $digester->add($asset->content_digest."\n");
+        my $asset = $_[0];
+        $digester->add($asset->digest."\n");
     }
 }
 
@@ -145,10 +145,10 @@ sub match {
 
 sub check_digest_file {
     my $self = shift;
-    my $digest = $self->digest;
+    my $key_digest = $self->key_digest;
     my $dir = $self->assets->rsc->dir->subdir(".check-digest");
     $dir->mkpath unless -d $dir;
-    my $file = $dir->file($digest);
+    my $file = $dir->file($key_digest);
     return $file;
 }
 

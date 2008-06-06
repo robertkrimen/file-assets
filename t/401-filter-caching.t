@@ -4,8 +4,8 @@ use strict;
 
 use Test::More qw/no_plan/;
 use t::Test;
-my $assets = t::Test->assets;
-my $scratch = t::Test->scratch;
+my $assets = t::Test->assets(output_path => [ [ qw/* %n%-l.%e/ ] ]);
+my $scratch = t::Test->scratch; 
 
 $assets->include("css/apple.css");
 $assets->include("css/banana.css");

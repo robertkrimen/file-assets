@@ -107,6 +107,19 @@ sub parse_filter {
 #    }
 }
 
+sub _substitute($$$) {
+    my $target = shift;
+    my $character = shift;
+    my $value = shift;
+
+    $value = "" unless defined $value;
+
+    $$target =~ s/\%$character/$value/g;
+    $$target =~ s/\%\.$character/$value ? "\.$value" : ""/ge;
+    $$target =~ s/\%\-$character/$value ? "\-$value" : ""/ge;
+    $$target =~ s/\%\/$character/$value ? "\/$value" : ""/ge;
+}
+
 sub build_output_path {
     my $class = shift;
     my $template = shift;
@@ -124,9 +137,9 @@ sub build_output_path {
 #        $output = $assets->path->child($output);
 #    }
 
-    $path = "%n%b.%e" unless $path;
-    $path .= "%n%b.%e" if $path && $path =~ m/\/$/;
-    $path .= ".%e" if $path =~ m/(?:^|\/)[^.]+$/;
+    $path = '%n%-l%-d.%e' unless $path;
+    $path .= '%n%-l%-d.%e' if $path && $path =~ m/\/$/;
+    $path .= '.%e' if $path =~ m/(?:^|\/)[^.]+$/;
 
     local %_;
     if (ref $filter eq "HASH") {
@@ -135,7 +148,7 @@ sub build_output_path {
     else {
         %_ = (
             content_digest => $filter->content_digest,
-            digest => $filter->digest,
+            key_digest => $filter->key_digest,
             name => $filter->assets->name,
             kind => $filter->kind->kind,
             head => $filter->kind->head,
@@ -144,21 +157,30 @@ sub build_output_path {
         );
     }
 
-    $path =~ s/%e/$_{extension}/g if $_{extension};
-    $path =~ s/%D/$_{content_digest}/g if $_{content_digest};
-    $path =~ s/%d/$_{digest}/g if $_{digest};
-    $path =~ s/%n/$_{name}/g if $_{name};
-    $path =~ s/%k/$_{kind}/g if $_{kind};
-    $path =~ s/%h/$_{head}/g if $_{head};
-    $_{tail} = "" unless defined $_{tail};
-    $path =~ s/%a/$_{tail}/g;
-    my $tail = $_{tail};
-    $tail = "-$tail" if length $tail;
-    $path =~ s/%b/$tail/g;
+#    $path =~ s/%e/$_{extension}/g if $_{extension};
+#    $path =~ s/%D/$_{content_digest}/g if $_{content_digest};
+#    $path =~ s/%d/$_{key_digest}/g if $_{key_digest};
+#    $path =~ s/%n/$_{name}/g if $_{name};
+#    $path =~ s/%k/$_{kind}/g if $_{kind};
+#    $path =~ s/%h/$_{head}/g if $_{head};
+    _substitute \$path, e => $_{extension};
+    _substitute \$path, D => $_{content_digest};
+    _substitute \$path, d => $_{key_digest};
+    _substitute \$path, n => $_{name};
+    _substitute \$path, k => $_{kind};
+    _substitute \$path, h => $_{head};
+    _substitute \$path, l => $_{tail};
 
-    $path =~ m/(?<!%)%[D]/ and carp "Unmatched content digest substitution %D in output path pattern ($path)\n" .
+#    $_{tail} = "" unless defined $_{tail};
+#    $path =~ s/%a/$_{tail}/g;
+#    my $tail = $_{tail};
+#    $tail = "-$tail" if length $tail;
+#    $path =~ s/%b/$tail/g;
+
+    $path =~ m/(?<!%)%[\-\/\.]?[D]/ and carp "Unmatched content digest substitution %D in output path pattern ($path)\n" .
                                         "Did you forget to set \"content_digest => 1\" in the filter?";
-    $path =~ m/(?<!%)%[eDdnkhab]/ and carp "Unmatched substitution in output path pattern ($path)";
+    $path =~ m/(?<!%)%[\-\/\.]?[eDdnkhl]/ and carp "Unmatched substitution in output path pattern ($path)";
+    $path =~ m/(?<!%)%[\-\/\.]?[ab]/ and carp "Unmatched substitution in output path pattern ($path): \%a and \%b are deprecated: use \%l and \%-l instead";
 
     $path =~ s/%%/%/g;
 

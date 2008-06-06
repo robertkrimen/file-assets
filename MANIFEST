@@ -40,6 +40,7 @@ t/007-pathing.t
 t/008-content.t
 t/009-output-path.t
 t/010-css-media.t
+t/100-interface.t
 t/400-filter.t
 t/401-filter-caching.t
 t/440-filter-Concat.t

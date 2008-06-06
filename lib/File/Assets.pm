@@ -9,11 +9,11 @@ File::Assets - Manage .css and .js assets in a web application
 
 =head1 VERSION
 
-Version 0.056
+Version 0.060_1
 
 =cut
 
-our $VERSION = '0.056';
+our $VERSION = '0.060_1';
 
 =head1 SYNOPSIS
 
@@ -73,7 +73,7 @@ our $VERSION = '0.056';
 
 File::Assets is a tool for managing JavaScript and CSS assets in a (web) application. It allows you to "publish" assests in one place after having specified them in different parts of the application (e.g. throughout request and template processing phases).
 
-This package has the added bonus of assisting with minification and filtering of assets. Support is built-in for YUI Compressor (L<http://developer.yahoo.com/yui/compressor/>), L<JavaScript::Minifier>, and L<CSS::Minifier>. Filtering is fairly straightforward to implement, so it's a good place to start if need a JavaScript or CSS preprocessor (e.g. something like HAML L<http://haml.hamptoncatlin.com/>)
+This package has the added bonus of assisting with minification and filtering of assets. Support is built-in for YUI Compressor (L<http://developer.yahoo.com/yui/compressor/>), L<JavaScript::Minifier>, and L<CSS::Minifier>.
 
 File::Assets was built with L<Catalyst> in mind, although this package is framework agnostic. Look at L<Catalyst::Plugin::Assets> for an easy way to integrate File::Assets with Catalyst.
 
@@ -113,6 +113,12 @@ By default, File::Assets will avoid re-minifying assets if nothing in the files 
     $assets->name("standard");
 
 You can change the name of the assets at anytime before exporting.
+
+=head2 YUI Compressor 2.2.5 is required
+
+If you want to use the YUI Compressor, you should have version 2.2.5 or above. 
+
+YUI Compressor 2.1.1 (and below) will *NOT WORK*
 
 =head1 METHODS
 

@@ -93,7 +93,7 @@ sub new {
     }
     elsif (0 && $base && $content) { # Nonsense scenario?
         croak "Don't have a type for this asset" unless $type;
-        my $path = File::Assets::Util->build_asset_path(undef, type => $type, content_digest => $self->content_digest);
+        my $path = File::Assets::Util->build_asset_path(undef, type => $type, digest => $self->digest);
         $self->{rsc} = $base->child($path);
         $self->{type} = $type;
     }
@@ -185,14 +185,12 @@ sub write {
 
 =head2 $asset->digest
 
-=head2 $asset->content_digest
-
 Returns a hex digest for the content of $asset
 
-NOTE: $asset->digest used to return a unique signature for the asset (based off the filename), but this has changed to
-now return the actual hex digest of the content of $asset
-
 =cut
+
+# NOTE: $asset->digest used to return a unique signature for the asset (based off the filename), but this has changed to
+# now return the actual hex digest of the content of $asset
 
 sub digest {
     my $self = shift;
@@ -203,6 +201,7 @@ sub digest {
 
 sub content_digest {
     my $self = shift;
+    carp "File::Assets::Asset::content_digest is DEPRECATED (use ::digest instead)";
     return $self->digest;
 }
 

@@ -11,7 +11,7 @@ use strict;
 use Test::More qw/no_plan/;
 use t::Test;
 {
-    my $assets = t::Test->assets;
+    my $assets = t::Test->assets(output_path => [ [ qw/* %n%-l.%e/ ] ]);
     my $scratch = t::Test->scratch;
     my $filter;
 
@@ -59,8 +59,7 @@ use t::Test;
 }
 {
     my $assets = t::Test->assets(
-        output_path => [
-        ],
+        output_path => [ [ qw/* %n%-l.%e/ ] ],
         filter => [
             [ css => 'minifier', ],
             [ js => 'minifier', ],

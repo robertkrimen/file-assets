@@ -26,6 +26,8 @@ requires 'IO::Scalar';
 
 recommends 'JavaScript::Minifier';
 recommends 'CSS::Minifier';
+recommends 'CSS::Minifier::XS';
+recommends 'JavaScript::Minifier::XS';
 
 auto_install;
 
