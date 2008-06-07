@@ -34,6 +34,7 @@ use t::Test;
     ok(-s $scratch->file("static/assets.css"));
     like($scratch->read("static/assets.css"), qr/div\.cherry/);
     like($scratch->read("static/assets.css"), qr/font-weight/);
+    is($scratch->read("static/assets.css"), 'div.cherry{font-weight:bold;font-weight:100;border:1px solid #aaaaaa;}div.cherry em{color:red;}');
 
     ok($filter = $assets->filter(js => "minifier-javascript"));
     compare($assets->export, qw(

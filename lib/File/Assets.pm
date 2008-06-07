@@ -167,7 +167,13 @@ sub new {
     $self->{name} = $_{name};
 
     $self->{output_asset_scheme} = $_{output_asset} || $_{output_asset_scheme} || [];
-    $self->{output_path_scheme} = $_{output_path} || $_{output_path_scheme} || [];
+    my $output_path = $_{output_path} || $_{output_path_scheme} || [];
+
+    if ($output_path && ! ref $output_path) {
+        $output_path = [ [ qw/*/ => $output_path ] ];
+    }
+    $self->{output_path_scheme} = $output_path;
+
     $self->{filter_scheme} = {};
     my $filter_scheme = $_{filter} || $_{filters} || $_{filter_scheme} || [];
     for my $rule (@$filter_scheme) {
@@ -181,7 +187,12 @@ sub new {
         elsif ($minify =~ m/\.jar/) {
             $self->filter("yuicompressor:$minify");
         }
-        
+        elsif ($minify eq "xs") {
+            $self->filter("minifier-xs");
+        }
+        elsif ($minify eq "best" || $minify eq 1) {
+            $self->filter("minifier-best");
+        }
     }
 
     return $self;

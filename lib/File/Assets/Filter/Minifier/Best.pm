@@ -13,7 +13,7 @@ sub signature {
 my %best;
 sub _css_minifier {
     return $best{css} ||= 
-        File::Assets::Filter::Minifier::CSS::XS->_minifier_is_available ?
+        File::Assets::Filter::Minifier::CSS::XS->_minifier_package_is_available ?
         \&File::Assets::Filter::Minifier::CSS::XS::minify :
         \&File::Assets::Filter::Minifier::CSS::minify
     ;
@@ -21,7 +21,7 @@ sub _css_minifier {
 
 sub _js_minifier {
     return $best{js} ||= 
-        File::Assets::Filter::Minifier::JavaScript::XS->_minifier_is_available ?
+        File::Assets::Filter::Minifier::JavaScript::XS->_minifier_package_is_available ?
         \&File::Assets::Filter::Minifier::JavaScript::XS::minify :
         \&File::Assets::Filter::Minifier::JavaScript::minify
     ;
