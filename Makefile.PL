@@ -17,7 +17,7 @@ requires 'Path::Resource';
 requires 'Scalar::Util';
 requires 'Tie::LLHash';
 requires 'Digest';
-requires 'Carp::Clan';
+requires 'Carp::Clan::Share';
 requires 'Object::Tiny';
 requires 'Class::Data::Inheritable';
 requires 'HTML::Declare';

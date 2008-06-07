@@ -147,7 +147,7 @@ sub path {
 
 =head2 $asset->content 
 
-Returns a scalar reference to the content contained in $asset->file
+Returns a SCALAR reference to the content contained in $asset->file
 
 =cut
 
@@ -167,7 +167,7 @@ sub content {
 
 =head2 $asset->write( <content> ) 
 
-Writes <content>, which should be a scalar reference, to the file located at $asset->file
+Writes <content>, which should be a SCALAR reference, to the file located at $asset->file
 
 If the parent directory for $asset->file does not exist yet, this method will create it first
 

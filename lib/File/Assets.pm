@@ -174,6 +174,16 @@ sub new {
         $self->filter(@$rule);
     }
 
+    if (my $minify = $_{minify}) {
+        if  ($minify =~ m/^yuicompressor:/) {
+            $self->filter($minify);
+        }
+        elsif ($minify =~ m/\.jar/) {
+            $self->filter("yuicompressor:$minify");
+        }
+        
+    }
+
     return $self;
 }
 
