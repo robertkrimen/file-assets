@@ -16,7 +16,7 @@ sub assets {
     return ($scratch, $assets);
 }
 
-my ($cache, $asset, $digest, $size, $mtime);
+my ($cache, $asset, $content, $digest, $size, $mtime);
 {
     diag "First assets";
     my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify 1));
@@ -30,6 +30,7 @@ my ($cache, $asset, $digest, $size, $mtime);
 
     $cache = $assets->cache;
     $asset = $assets->fetch("/static/css/apple.css");
+    $content = $asset->_content;
 }
 
 {
@@ -44,7 +45,8 @@ my ($cache, $asset, $digest, $size, $mtime);
     is(-s $scratch->file("static/assets.css"), 1);
 
     is($cache, $assets->cache);
-    is($asset, $assets->fetch("/static/css/apple.css"));
+    isnt($asset, $assets->fetch("/static/css/apple.css"));
+    is($content, $assets->fetch("/static/css/apple.css")->_content);
     is($asset->digest, $assets->fetch("/static/css/apple.css")->digest);
 
     $digest = $asset->digest;
@@ -66,9 +68,11 @@ _END_
     is(-s $scratch->file("static/assets.css"), 1);
 
     is($cache, $assets->cache);
-    is($asset, $assets->fetch("/static/css/apple.css"));
+    isnt($asset, $assets->fetch("/static/css/apple.css"));
+    is($content, $assets->fetch("/static/css/apple.css")->_content);
     isnt($digest, $assets->fetch("/static/css/apple.css")->digest);
 
+    $asset = $assets->fetch("/static/css/apple.css");
     $digest = $asset->digest;
 }
 

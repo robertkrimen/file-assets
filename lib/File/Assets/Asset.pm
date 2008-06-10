@@ -5,6 +5,7 @@ use strict;
 
 use File::Assets::Util;
 use File::Assets::Carp;
+use File::Assets::Asset::Content;
 
 use XML::Tiny;
 use IO::Scalar;
@@ -60,17 +61,12 @@ sub new {
         $content = $tag->{content}->[0]->{content};
         $content = "" unless defined $content;
     }
-    $self->{content} = \$content if defined $content;
 
-    my ($path, $rsc, $base) = delete @$asset{qw/path rsc base/};
-    my ($type) = delete @$asset{qw/type/};
-
+    my ($path, $rsc, $base, $type) = delete @$asset{qw/path rsc base type/};
     if (defined $type) {
         my $_type = $type;
         $type = File::Assets::Util->parse_type($_type) or croak "Don't understand type ($_type) for this asset";
     }
-
-    my $inline = 0;
 
     if ($rsc) {
         croak "Don't have a type for this asset" unless $type;
@@ -89,19 +85,18 @@ sub new {
         $self->{type} = $type || File::Assets::Util->parse_type($path) or croak "Don't know type for asset ($path)";
     }
     elsif (defined $content) {
-        $inline = 1;
         croak "Don't have a type for this asset" unless $type;
         $self->{type} = $type;
+        $self->{digest} = File::Assets::Util->digest->add($content)->hexdigest;
+        $self->{content} = \$content;
     }
 
     my $rank = $self->{rank} = delete $asset->{rank} || 0;
     croak "Don't understand rank ($rank)" if $rank && $rank =~ m/[^\d\+\-\.]/;
-
-    $self->{content_mtime} = 0;
-    $self->{content_size} = 0;
-    $self->{mtime} = delete $asset->{mtime} || 0;
-    $self->{inline} = exists $asset->{inline} ? (delete $asset->{inline} ? 1 : 0) : $inline;
-
+    $self->{cache} = delete $asset->{cache};
+    $self->{inline} = exists $asset->{inline} ?
+        (delete $asset->{inline} ? 1 : 0) :
+        $self->{content} ? 1 : 0;
     $self->{attributes} = { %$asset }; # The rest goes here!
 
     return $self;
@@ -116,7 +111,7 @@ Returns a L<URI> object represting the uri for $asset
 sub uri {
     my $self = shift;
     return unless $self->{rsc};
-    return $self->rsc->uri;
+    return ($self->{uri} ||= $self->rsc->uri)->clone;
 }
 
 =head2 $asset->file 
@@ -140,7 +135,7 @@ Returns the path of $asset
 sub path {
     my $self = shift;
     return unless $self->{rsc};
-    return $self->rsc->path;
+    return $self->{path} ||= $self->rsc->path;
 }
 
 =head2 $asset->content 
@@ -151,17 +146,7 @@ Returns a SCALAR reference to the content contained in $asset->file
 
 sub content {
     my $self = shift;
-
-    if (my $file = $self->file) {
-        croak "Trying to get content from non-existent file ($file)" unless -e $file;
-        if (! $self->{content} || $self->stale) {
-            local $/ = undef;
-            $self->{content} = \$self->file->slurp;
-            $self->{content_mtime} = $file->stat->mtime;
-            $self->{content_size} = length ${ $self->{content} };
-        }
-    }
-    return $self->{content};
+    return $self->{content} || $self->_content->content;
 }
 
 =head2 $asset->write( <content> ) 
@@ -193,9 +178,7 @@ Returns a hex digest for the content of $asset
 
 sub digest {
     my $self = shift;
-    return $self->{digest} ||= do {
-        File::Assets::Util->digest->add(${ $self->content })->hexdigest;
-    }
+    return $self->{digest} || $self->_content->digest;
 }
 
 sub content_digest {
@@ -204,59 +187,57 @@ sub content_digest {
     return $self->digest;
 }
 
-=head2 $asset->mtime
-
-Returns the (stat) mtime of $asset->file, or 0 if $asset->file does not exist
-
-=cut
-
 sub mtime {
-    my $self = shift;
-    return $self->{mtime} unless $self->{rsc};
-    return $self->file_mtime;
+    return 0;
+    carp "File::Assets::Asset::mtime is DEPRECATED";
 }
 
 sub file_mtime {
     my $self = shift;
     return 0 unless $self->file;
-    return (stat($self->file))[9] || 0;
+    return $self->_content->file_mtime;
 }
 
 sub file_size {
     my $self = shift;
     return 0 unless $self->file;
-    return (stat($self->file))[7] || 0;
+    return $self->_content->file_size;
 }
 
 sub content_mtime {
     my $self = shift;
-    $self->content unless $self->{content};
-    return $self->{content_mtime};
+    return 0 unless $self->file;
+    return $self->_content->content_mtime;
 }
 
 sub content_size {
     my $self = shift;
-    $self->content unless $self->{content};
-    return $self->{content_size};
+    return length ${ $self->{content} } unless $self->file;
+    return $self->_content->content_size;
 }
 
 sub refresh {
     my $self = shift;
-    return 0 unless $self->{rsc};
-    if ($self->stale) {
-        delete $self->{digest};
-        delete $self->{content};
-        return 1;
-    }
-    return 0;
+    return 0 unless $self->file;
+    return $self->_content->refresh;
 }
 
 sub stale {
     my $self = shift;
-    return 0 unless $self->{rsc};
-    return
-        ($self->file_mtime > $self->content_mtime) ||
-        ($self->file_size != $self->content_size);
+    return 0 unless $self->file;
+    return $self->_content->stale;
+}
+
+sub _content {
+    my $self = shift;
+    return $self->{_content} ||= do {
+        if (my $cache = $self->{cache}) {
+            $cache->content($self->file);
+        }
+        else {
+            File::Assets::Asset::Content->new($self->file);
+        }
+    };
 }
 
 =head2 $asset->key

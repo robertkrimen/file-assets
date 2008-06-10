@@ -3,7 +3,7 @@ package File::Assets::Cache;
 use strict;
 use warnings;
 
-use Object::Tiny qw//;
+use Object::Tiny qw/_content_registry/;
 use File::Assets::Carp;
 
 use File::Assets;
@@ -27,7 +27,8 @@ sub new {
 
     my $self = bless {}, $class;
 
-    $self->{_registry} = {};
+    $self->{_asset_registry} = {};
+    $self->{_content_registry} = {};
 
     $cache{$name} = $self if $name;
 
@@ -41,26 +42,26 @@ sub assets {
 
 sub exists {
     my $self = shift;
-    my $dir = shift;
+    my $base = shift;
     my $key = shift;
 
-    return exists $self->_registry($dir)->{$key} ? 1 : 0;
+    return exists $self->_asset_registry($base)->{$key} ? 1 : 0;
 }
 
 sub store {
     my $self = shift;
-    my $dir = shift;
+    my $base = shift;
     my $asset = shift;
 
-    return $self->_registry($dir)->{$asset->key} = $asset;
+    return $self->_asset_registry($base)->{$asset->key} = $asset;
 }
 
 sub fetch {
     my $self = shift;
-    my $dir = shift;
+    my $base = shift;
     my $key = shift;
 
-    if (my $asset = $self->_registry($dir)->{$key}) {
+    if (my $asset = $self->_asset_registry($base)->{$key}) {
         $asset->refresh;
         return $asset;
     }
@@ -68,16 +69,25 @@ sub fetch {
     return undef;
 }
 
-sub _registry {
+sub _asset_registry {
     my $self = shift;
-    return $self->{_registry} unless @_;
-    my $dir = shift;
-    return $self->{_registry}->{$dir} ||= {};
+    return $self->{_asset_registry} unless @_;
+    my $base = shift;
+    return $self->{_asset_registry}->{$base} ||= {};
 }
 
 sub clear {
     my $self = shift;
-    $self->{_registry} = {};
+    $self->{_asset_registry} = {};
+    $self->{_content_registry} = {};
+}
+
+sub content {
+    my $self = shift;
+    my $file = shift;
+    my $content = $self->_content_registry->{$file} ||= File::Assets::Asset::Content->new($file);
+    $content->refresh;
+    return $content;
 }
 
 1;

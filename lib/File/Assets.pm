@@ -328,7 +328,7 @@ sub include {
     my %asset = @asset;
     _correct_for_proper_rank_and_type_order \%asset;
 
-    my $asset = File::Assets::Asset->new(base => $self->rsc, %asset);
+    my $asset = File::Assets::Asset->new(base => $self->rsc, cache => $self->cache, %asset);
 
     return $self->fetch_or_store($asset);
 }
@@ -496,9 +496,9 @@ sub exists {
     my $self = shift;
     my $key = shift;
 
-    if (my $cache = $self->cache) {
-        return 1 if $cache->exists($self->rsc->dir, $key);
-    }
+#    if (my $cache = $self->cache) {
+#        return 1 if $cache->exists($self->rsc->dir, $key);
+#    }
 
     return exists $self->_registry_hash->{$key} ? 1 : 0;
 }
@@ -517,9 +517,9 @@ sub store {
 
     return $asset unless $asset->path;
 
-    if (my $cache = $self->cache) {
-        $cache->store($self->rsc->dir, $asset);
-    }
+#    if (my $cache = $self->cache) {
+#        $cache->store($self->rsc->dir, $asset);
+#    }
 
     return $asset;
 }
@@ -540,11 +540,11 @@ sub fetch {
 
     return $asset if $asset;
 
-    if (my $cache = $self->cache) {
-        if ($asset = $cache->fetch($self->rsc->dir, $key)) {
-            return $self->store($asset);
-        }
-    }
+#    if (my $cache = $self->cache) {
+#        if ($asset = $cache->fetch($self->rsc->dir, $key)) {
+#            return $self->store($asset);
+#        }
+#    }
 
     return undef;
 }
