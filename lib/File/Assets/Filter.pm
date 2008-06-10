@@ -9,7 +9,7 @@ use File::Assets::Carp;
 use Digest;
 use Scalar::Util qw/weaken/;
 
-for my $ii (qw/matched key_digest key_digester mtime assets bucket slice/) {
+for my $ii (qw/matched mtime assets bucket slice/) {
     no strict 'refs';
     *$ii = sub {
         my $self = shift;
@@ -114,7 +114,6 @@ sub begin {
     $self->stash->{slice} = $slice;
     $self->stash->{bucket} = $bucket;
     $self->stash->{assets} = $assets;
-    $self->stash->{key_digester} = File::Assets::Util->digest;
     $self->stash->{mtime} = 0;
 }
 
@@ -136,8 +135,6 @@ sub filter {
     my @matched;
     $self->matched(\@matched);
 
-    my $key_digester = $self->key_digester;
-
     my $count = 0;
     for (my $rank = 0; $rank < @$slice; $rank++) {
         my $asset = $slice->[$rank];
@@ -147,15 +144,11 @@ sub filter {
         $count = $count + 1;
         push @matched, { asset => $asset, rank => $rank, count => $count };
 
-        $key_digester->add($asset->key."\n");
-
         my $asset_file_mtime = $asset->file_mtime;
         $self->mtime($asset_file_mtime) if $asset_file_mtime >= $self->mtime;
 
         $self->process($asset, $rank, $count, scalar @$slice, $slice);
     }
-    $self->key_digest($key_digester->hexdigest);
-
     $self->post;
 
     $self->end;
@@ -164,18 +157,6 @@ sub filter {
 sub _match {
     my $self = shift;
     my $asset = shift;
-
-#    return $self->match($asset, 0) if $self->where->{type} && $self->where->{type}->type ne $asset->type->type;
-
-#    my $code;
-#    if ($code = $self->where->{path}) {
-#        local $_ = $asset->path;
-#        return $self->match($asset, 0) if $code->($_, $asset, $self);
-#    }
-
-#    if ($code = $self->where->{code}) {
-#        return $self->match($asset, 0) if $code->($asset, $self);
-#    }
 
     return $self->match($asset, 1);
 }

@@ -52,19 +52,10 @@ sub assets {
 }
 
 {
-    my ($scratch, $assets) = assets(qw(output_path %n%-d.%e minify 1));
+    my ($scratch, $assets) = assets(qw(output_path %n%-f.%e minify 1));
 
     compare($assets->export, qw(
         http://example.com/static/assets-b11bf9a77b520852e95af3e0b5c1aa95.css
         http://example.com/static/assets-7442c488c0bf3d37fc6bece0b5b8eea9.js
-    ));
-}
-
-{
-    my ($scratch, $assets) = assets(qw(output_path %n%-D.%e minify 1));
-
-    compare($assets->export, qw(
-        http://example.com/static/assets-39b784b6d86594ab3b4d9179d15c5514.css
-        http://example.com/static/assets-096f395bf653a35849f7d4f4ac741140.js
     ));
 }

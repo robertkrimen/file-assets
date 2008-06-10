@@ -149,8 +149,8 @@ sub build_output_path {
     }
     else {
         %_ = (
-            content_digest => $filter->content_digest,
-            key_digest => $filter->key_digest,
+            fingerprint => $filter->fingerprint,
+            content_digest => $filter->fingerprint,
             name => $filter->assets->name,
             kind => $filter->kind->kind,
             head => $filter->kind->head,
@@ -166,10 +166,12 @@ sub build_output_path {
 #    $path =~ s/%k/$_{kind}/g if $_{kind};
 #    $path =~ s/%h/$_{head}/g if $_{head};
     _substitute \$path, e => $_{extension};
-    _substitute \$path, d => $_{content_digest};
-    _substitute \$path, D => $_{key_digest};
+    _substitute \$path, f => $_{fingerprint};
     _substitute \$path, n => $_{name};
     _substitute \$path, k => $_{kind};
+
+    _substitute \$path, d => $_{content_digest};
+    _substitute \$path, D => $_{content_digest};
     _substitute \$path, h => $_{head};
     _substitute \$path, l => $_{tail};
 

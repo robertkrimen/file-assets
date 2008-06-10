@@ -122,15 +122,16 @@ YUI Compressor 2.1.1 (and below) will *NOT WORK*
 
 =head2 Specifying an C<output_path> pattern
 
-You can use the following directives when crafting a path pattern:
+When aggregating or minifying assets, you need to put the result in a new file. 
 
-    %e      The extension of the asset (e.g. css, js)
-    %D      The content-digest of the asset (in hexadecimal, the content signature of the asset)
-    %d      The key-digest of the asset (in hexadecimal, the key signature of the asset)
+You can use the following directives when crafting a path/filename pattern:
+
     %n      The name of the asset, "assets" by default
+    %e      The extension of the asset (e.g. css, js)
+    %f      The fingerprint of the asset collection (a hexadecimal digest of the concatenated digest of each asset in the collection)
     %k      The kind of the asset (e.g. css-screen, css, css-print, js)
-    %h      The head-part of the kind of the asset (e.g. css, js)
-    %l      The tail-part of the kind of the asset (e.g. screen, print) (essentially the media type of the .css asset)
+    %p      The kind super-part of the asset (e.g. css, js)
+    %P      The kind sub-part of the asset (e.g. screen, print) (essentially the media type of a .css asset)
 
 In addition, in each of the above, a ".", "/" or "-" can be placed in between the "%" and directive character.
 This will result in a ".", "/", or "-" being prepended to the directive value.
@@ -144,6 +145,11 @@ A pattern of C<%n%-l.%e> can result in the following:
     assets.css          # name of "assets", no media type, an asset type of CSS (.css)
     assets-screen.css   # name of "assets", media type of "screen", an asset type of CSS (.css)
     assets.js           # name of "assets", an asset type of JavaScript (.js)
+
+=head2 Strange output or "sticky" content
+
+File::Assets uses built-in caching to share content across different objects (via File::Assets::Cache). If you're having problems
+try disabling the cache by passing "cache => 0" to File::Assets->new
 
 =head1 METHODS
 
