@@ -27,7 +27,6 @@ sub new {
 
     my $self = bless {}, $class;
 
-    $self->{_asset_registry} = {};
     $self->{_content_registry} = {};
 
     $cache{$name} = $self if $name;
@@ -39,6 +38,23 @@ sub assets {
     my $self = shift;
     return File::Assets->new(cache => $self, @_);
 }
+
+sub clear {
+    my $self = shift;
+    $self->{_content_registry} = {};
+}
+
+sub content {
+    my $self = shift;
+    my $file = shift;
+    my $content = $self->_content_registry->{$file} ||= File::Assets::Asset::Content->new($file);
+    $content->refresh;
+    return $content;
+}
+
+1;
+
+__END__
 
 sub exists {
     my $self = shift;
@@ -76,18 +92,3 @@ sub _asset_registry {
     return $self->{_asset_registry}->{$base} ||= {};
 }
 
-sub clear {
-    my $self = shift;
-    $self->{_asset_registry} = {};
-    $self->{_content_registry} = {};
-}
-
-sub content {
-    my $self = shift;
-    my $file = shift;
-    my $content = $self->_content_registry->{$file} ||= File::Assets::Asset::Content->new($file);
-    $content->refresh;
-    return $content;
-}
-
-1;

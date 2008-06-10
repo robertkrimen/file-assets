@@ -496,10 +496,6 @@ sub exists {
     my $self = shift;
     my $key = shift;
 
-#    if (my $cache = $self->cache) {
-#        return 1 if $cache->exists($self->rsc->dir, $key);
-#    }
-
     return exists $self->_registry_hash->{$key} ? 1 : 0;
 }
 
@@ -513,15 +509,7 @@ sub store {
     my $self = shift;
     my $asset = shift;
 
-    $self->_registry_hash->{$asset->key} = $asset;
-
-    return $asset unless $asset->path;
-
-#    if (my $cache = $self->cache) {
-#        $cache->store($self->rsc->dir, $asset);
-#    }
-
-    return $asset;
+    return $self->_registry_hash->{$asset->key} = $asset;
 }
 
 =head2 $asset = $assets->fetch( <path> )
@@ -536,17 +524,7 @@ sub fetch {
     my $self = shift;
     my $key = shift;
 
-    my $asset = $self->_registry_hash->{$key};
-
-    return $asset if $asset;
-
-#    if (my $cache = $self->cache) {
-#        if ($asset = $cache->fetch($self->rsc->dir, $key)) {
-#            return $self->store($asset);
-#        }
-#    }
-
-    return undef;
+    return $self->_registry_hash->{$key};
 }
 
 sub fetch_or_store {
@@ -825,3 +803,20 @@ under the same terms as Perl itself.
 =cut
 
 1; # End of File::Assets
+
+__END__
+
+#    if (my $cache = $self->cache) {
+#        return 1 if $cache->exists($self->rsc->dir, $key);
+#    }
+
+#    if (my $cache = $self->cache) {
+#        $cache->store($self->rsc->dir, $asset);
+#    }
+
+#    if (my $cache = $self->cache) {
+#        if ($asset = $cache->fetch($self->rsc->dir, $key)) {
+#            return $self->store($asset);
+#        }
+#    }
+
