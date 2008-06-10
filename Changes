@@ -1,7 +1,7 @@
 TODO:
  - "Duplicate assets (via ->include(...)" testing?
 
-0.060_3:
+0.060_3 Tuesday June 10 14:51:55 PDT 2008:
  - Dropped the key digest and renamed content digest to fingerprint
  - Changed output path patterning and renamed/deprecated a bunch of directives
  - Streamlined File::Assets::Filter::Collect

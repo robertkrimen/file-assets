@@ -138,7 +138,7 @@ This will result in a ".", "/", or "-" being prepended to the directive value.
 
 The default pattern is:
 
-    %n%-l%-d.%e
+    %n%-l%-f.%e
 
 A pattern of C<%n%-l.%e> can result in the following:
 
