@@ -5,6 +5,10 @@ TODO:
  - Make the output_path scheme easier to declare
  - Incorporate *::Minifier::XS
 
+0.060_2 Tuesday June 10 03:46:12 PDT 2008:
+ - Improvements to the interface
+ - Implemented automatic file content/file digesting caching
+
 0.060_1 Thursday June 05 18:48:02 PDT 2008:
  - Marked $asset->content_digest as deprecated
  - Changed the name of Filter->digest to Filter->key_digest

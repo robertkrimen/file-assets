@@ -17,7 +17,6 @@ inc/Module/Install/WriteAll.pm
 META.yml
 lib/File/Assets/Asset.pm
 lib/File/Assets/Bucket.pm
-lib/File/Assets/Builder.pm
 lib/File/Assets/Filter.pm
 lib/File/Assets/Filter/Collect.pm
 lib/File/Assets/Filter/Concat.pm
