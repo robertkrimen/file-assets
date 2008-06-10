@@ -108,17 +108,22 @@ sub parse_filter {
 #    }
 }
 
-sub _substitute($$$) {
+sub _substitute($$$;$$) {
     my $target = shift;
     my $character = shift;
     my $value = shift;
+    my $deprecated = shift;
+    my $original_path = shift;
 
     $value = "" unless defined $value;
 
-    $$target =~ s/\%$character/$value/g;
-    $$target =~ s/\%\.$character/$value ? "\.$value" : ""/ge;
-    $$target =~ s/\%\-$character/$value ? "\-$value" : ""/ge;
-    $$target =~ s/\%\/$character/$value ? "\/$value" : ""/ge;
+    my $found;
+    $found ||= $$target =~ s/\%$character/$value/g;
+    $found ||= $$target =~ s/\%\.$character/$value ? "\.$value" : ""/ge;
+    $found ||= $$target =~ s/\%\-$character/$value ? "\-$value" : ""/ge;
+    $found ||= $$target =~ s/\%\/$character/$value ? "\/$value" : ""/ge;
+
+    carp "\%$character is deprecated as a path pattern (in \"$original_path\")" if $found && $deprecated;
 }
 
 sub build_output_path {
@@ -138,9 +143,9 @@ sub build_output_path {
 #        $output = $assets->path->child($output);
 #    }
 
-    $path = '%n%-l%-d.%e' unless $path;
+    $path = '%n%-l%-f.%e' unless $path;
     $path = "$path/" if blessed $path && $path->isa("Path::Class::Dir");
-    $path .= '%n%-l%-d.%e' if $path && $path =~ m/\/$/;
+    $path .= '%n%-l%-f.%e' if $path && $path =~ m/\/$/;
     $path .= '.%e' if $path =~ m/(?:^|\/)[^.]+$/;
 
     local %_;
@@ -150,7 +155,6 @@ sub build_output_path {
     else {
         %_ = (
             fingerprint => $filter->fingerprint,
-            content_digest => $filter->fingerprint,
             name => $filter->assets->name,
             kind => $filter->kind->kind,
             head => $filter->kind->head,
@@ -165,26 +169,32 @@ sub build_output_path {
 #    $path =~ s/%n/$_{name}/g if $_{name};
 #    $path =~ s/%k/$_{kind}/g if $_{kind};
 #    $path =~ s/%h/$_{head}/g if $_{head};
-    _substitute \$path, e => $_{extension};
-    _substitute \$path, f => $_{fingerprint};
-    _substitute \$path, n => $_{name};
-    _substitute \$path, k => $_{kind};
-
-    _substitute \$path, d => $_{content_digest};
-    _substitute \$path, D => $_{content_digest};
-    _substitute \$path, h => $_{head};
-    _substitute \$path, l => $_{tail};
-
 #    $_{tail} = "" unless defined $_{tail};
 #    $path =~ s/%a/$_{tail}/g;
 #    my $tail = $_{tail};
 #    $tail = "-$tail" if length $tail;
 #    $path =~ s/%b/$tail/g;
 
-    $path =~ m/(?<!%)%[\-\/\.]?[D]/ and carp "Unmatched content digest substitution %D in output path pattern ($path)\n" .
-                                        "Did you forget to set \"content_digest => 1\" in the filter?";
-    $path =~ m/(?<!%)%[\-\/\.]?[eDdnkhl]/ and carp "Unmatched substitution in output path pattern ($path)";
-    $path =~ m/(?<!%)%[\-\/\.]?[ab]/ and carp "Unmatched substitution in output path pattern ($path): \%a and \%b are deprecated: use \%l and \%-l instead";
+
+    my $original_path = $path; 
+
+    $path =~ s/%b/%-l/g and carp "\%b is deprecated as a path pattern (in \"$original_path\")";
+
+    _substitute \$path, e => $_{extension};
+    _substitute \$path, f => $_{fingerprint};
+    _substitute \$path, n => $_{name};
+    _substitute \$path, k => $_{kind};
+    _substitute \$path, h => $_{head};
+    _substitute \$path, l => $_{tail};
+
+    _substitute \$path, d => $_{fingerprint}, 1 => $original_path;
+    _substitute \$path, D => $_{fingerprint}, 1 => $original_path;
+    _substitute \$path, a => $_{tail}, 1 => $original_path;
+
+#    $path =~ m/(?<!%)%[\-\/\.]?[D]/ and carp "Unmatched content digest substitution %D in output path pattern ($path)\n" .
+#                                        "Did you forget to set \"content_digest => 1\" in the filter?";
+#    $path =~ m/(?<!%)%[\-\/\.]?[eDdnkhl]/ and carp "Unmatched substitution in output path pattern ($path)";
+#    $path =~ m/(?<!%)%[\-\/\.]?[ab]/ and carp "Unmatched substitution in output path pattern ($path): \%a and \%b are deprecated: use \%l and \%-l instead";
 
     $path =~ s/%%/%/g;
 

@@ -130,8 +130,8 @@ You can use the following directives when crafting a path/filename pattern:
     %e      The extension of the asset (e.g. css, js)
     %f      The fingerprint of the asset collection (a hexadecimal digest of the concatenated digest of each asset in the collection)
     %k      The kind of the asset (e.g. css-screen, css, css-print, js)
-    %p      The kind super-part of the asset (e.g. css, js)
-    %P      The kind sub-part of the asset (e.g. screen, print) (essentially the media type of a .css asset)
+    %h      The kind head-part of the asset (e.g. css, js)
+    %l      The kind tail-part of the asset (e.g. screen, print) (essentially the media type of a .css asset)
 
 In addition, in each of the above, a ".", "/" or "-" can be placed in between the "%" and directive character.
 This will result in a ".", "/", or "-" being prepended to the directive value.

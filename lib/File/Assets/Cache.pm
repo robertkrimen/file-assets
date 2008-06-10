@@ -47,6 +47,7 @@ sub clear {
 sub content {
     my $self = shift;
     my $file = shift;
+    croak "Wasn't given a file" unless $file;
     my $content = $self->_content_registry->{$file} ||= File::Assets::Asset::Content->new($file);
     $content->refresh;
     return $content;

@@ -1,13 +1,19 @@
 TODO:
  - "Duplicate assets (via ->include(...)" testing?
- - The interface is horrible, improve, improve, improve
- - Document the output_path scheme
- - Make the output_path scheme easier to declare
- - Incorporate *::Minifier::XS
+
+0.060_3:
+ - Dropped the key digest and renamed content digest to fingerprint
+ - Changed output path patterning and renamed/deprecated a bunch of directives
+ - Streamlined File::Assets::Filter::Collect
+ - Documented the output_path scheme
+ - Made the output_path scheme easier to declare
+ - This is better now: The interface is horrible, improve, improve, improve
+ - Incorporate/allow external assets (e.g. http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js)
 
 0.060_2 Tuesday June 10 03:46:12 PDT 2008:
  - Improvements to the interface
  - Implemented automatic file content/file digesting caching
+ - Incorporated *::Minifier::XS, but it's too buggy, so it's disabled for now
 
 0.060_1 Thursday June 05 18:48:02 PDT 2008:
  - Marked $asset->content_digest as deprecated

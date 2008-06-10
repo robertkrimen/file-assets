@@ -9,7 +9,8 @@ use File::Assets::Asset::Content;
 
 use XML::Tiny;
 use IO::Scalar;
-use Object::Tiny qw/type rank attributes hidden rsc/;
+use Object::Tiny qw/type rank attributes hidden rsc outside/;
+use Scalar::Util qw/blessed/;
 
 =head1 SYNPOSIS 
 
@@ -74,6 +75,13 @@ sub new {
         $self->{type} = $type;
         croak "Can't also specify content and ", $self->rsc->file if defined $content;
     }
+    elsif ($path && $path =~ m/^https?:\/\// || (blessed $path && $path->isa("URI"))) {
+        my $uri = $self->{uri} = URI->new($path);
+        $self->{type} = $type || do {
+            File::Assets::Util->parse_type($uri->path) or croak "Unable to determine type of $uri";
+        };
+        $self->{outside} = 1;
+    }
     elsif ($base && $path) {
         if ($path =~ m/^\//) {
             $self->{rsc} = $base->clone($path);
@@ -89,6 +97,9 @@ sub new {
         $self->{type} = $type;
         $self->{digest} = File::Assets::Util->digest->add($content)->hexdigest;
         $self->{content} = \$content;
+    }
+    else {
+        croak "Don't know what to do";
     }
 
     my $rank = $self->{rank} = delete $asset->{rank} || 0;
@@ -110,7 +121,7 @@ Returns a L<URI> object represting the uri for $asset
 
 sub uri {
     my $self = shift;
-    return unless $self->{rsc};
+    return $self->{uri} unless $self->{rsc};
     return ($self->{uri} ||= $self->rsc->uri)->clone;
 }
 
@@ -248,7 +259,7 @@ Returns the unique key for the $asset. Usually the path/filename of the $asset, 
 
 sub key {
     my $self = shift;
-    return $self->path || ($self->{key} ||= '%' . $self->digest);
+    return $self->path || $self->uri || ($self->{key} ||= '%' . $self->digest);
 }
 
 =head2 $asset->hide

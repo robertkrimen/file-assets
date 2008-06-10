@@ -134,7 +134,9 @@ sub match {
     my $asset = shift;
     my $match = shift;
     return $self->SUPER::match($asset, $match &&
-        (! $asset->inline || ! $self->cfg->{skip_inline}));
+        (! $asset->inline || ! $self->cfg->{skip_inline}) &&
+        (! $asset->outside)
+    );
 }
 
 #sub check_digest_file {
