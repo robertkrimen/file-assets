@@ -4,9 +4,10 @@ use strict;
 use warnings;
 
 use Object::Tiny qw/cfg where signature/;
+use File::Assets::Carp;
+
 use Digest;
 use Scalar::Util qw/weaken/;
-use Carp::Clan qw/^File::Assets/;
 
 for my $ii (qw/matched key_digest key_digester mtime assets bucket slice/) {
     no strict 'refs';
@@ -148,8 +149,8 @@ sub filter {
 
         $key_digester->add($asset->key."\n");
 
-        my $asset_mtime = $asset->mtime;
-        $self->mtime($asset_mtime) if $asset_mtime >= $self->mtime;
+        my $asset_file_mtime = $asset->file_mtime;
+        $self->mtime($asset_file_mtime) if $asset_file_mtime >= $self->mtime;
 
         $self->process($asset, $rank, $count, scalar @$slice, $slice);
     }

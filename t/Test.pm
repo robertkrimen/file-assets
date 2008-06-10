@@ -66,7 +66,7 @@ sub compare ($;@) {
 }
 
 END {
-    memory_cycle_ok($assets);
+    memory_cycle_ok($assets) if Test::Builder->new->{Have_Plan};
 }
 
 package t::Test::Scratch;

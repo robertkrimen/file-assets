@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use base qw/File::Assets::Filter::Collect/;
-use Carp::Clan qw/^File::Assets/;
+use File::Assets::Carp;
 
 sub signature {
     return "yuicompressor";

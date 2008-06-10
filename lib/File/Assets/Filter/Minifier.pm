@@ -36,7 +36,8 @@ sub build_content {
     }
 
     my $minifier = $self->minifier;
-    my $output = $minifier->($input);
+    my $output;
+    $output = $minifier->($input);
 
     $file->parent->mkpath unless -d $file->parent;
     $file->openw->print("$output\n");

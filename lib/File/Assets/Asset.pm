@@ -4,9 +4,10 @@ use warnings;
 use strict;
 
 use File::Assets::Util;
+use File::Assets::Carp;
+
 use XML::Tiny;
 use IO::Scalar;
-use Carp::Clan qw/^File::Assets/;
 use Object::Tiny qw/type rank attributes hidden rsc/;
 
 =head1 SYNPOSIS 
@@ -59,7 +60,7 @@ sub new {
         $content = $tag->{content}->[0]->{content};
         $content = "" unless defined $content;
     }
-    $self->{content} = \$content;
+    $self->{content} = \$content if defined $content;
 
     my ($path, $rsc, $base) = delete @$asset{qw/path rsc base/};
     my ($type) = delete @$asset{qw/type/};
@@ -69,13 +70,13 @@ sub new {
         $type = File::Assets::Util->parse_type($_type) or croak "Don't understand type ($_type) for this asset";
     }
 
-    my ($key, $inline);
-    $inline = 0;
+    my $inline = 0;
 
     if ($rsc) {
         croak "Don't have a type for this asset" unless $type;
         $self->{rsc} = $rsc;
         $self->{type} = $type;
+        croak "Can't also specify content and ", $self->rsc->file if defined $content;
     }
     elsif ($base && $path) {
         if ($path =~ m/^\//) {
@@ -84,6 +85,7 @@ sub new {
         else {
             $self->{rsc} = $base->child($path);
         }
+        croak "Can't also specify content and ", $self->rsc->file if defined $content;
         $self->{type} = $type || File::Assets::Util->parse_type($path) or croak "Don't know type for asset ($path)";
     }
     elsif (defined $content) {
@@ -91,16 +93,12 @@ sub new {
         croak "Don't have a type for this asset" unless $type;
         $self->{type} = $type;
     }
-    elsif (0 && $base && $content) { # Nonsense scenario?
-        croak "Don't have a type for this asset" unless $type;
-        my $path = File::Assets::Util->build_asset_path(undef, type => $type, digest => $self->digest);
-        $self->{rsc} = $base->child($path);
-        $self->{type} = $type;
-    }
 
     my $rank = $self->{rank} = delete $asset->{rank} || 0;
     croak "Don't understand rank ($rank)" if $rank && $rank =~ m/[^\d\+\-\.]/;
 
+    $self->{content_mtime} = 0;
+    $self->{content_size} = 0;
     $self->{mtime} = delete $asset->{mtime} || 0;
     $self->{inline} = exists $asset->{inline} ? (delete $asset->{inline} ? 1 : 0) : $inline;
 
@@ -156,10 +154,11 @@ sub content {
 
     if (my $file = $self->file) {
         croak "Trying to get content from non-existent file ($file)" unless -e $file;
-        if (! $self->{content} || ($self->{mtime} != $file->stat->mtime)) {
+        if (! $self->{content} || $self->stale) {
             local $/ = undef;
             $self->{content} = \$self->file->slurp;
-            $self->{mtime} = $file->stat->mtime;
+            $self->{content_mtime} = $file->stat->mtime;
+            $self->{content_size} = length ${ $self->{content} };
         }
     }
     return $self->{content};
@@ -214,24 +213,61 @@ Returns the (stat) mtime of $asset->file, or 0 if $asset->file does not exist
 sub mtime {
     my $self = shift;
     return $self->{mtime} unless $self->{rsc};
-    return 0 unless my $stat = $self->file->stat;
-    return $stat->mtime;
+    return $self->file_mtime;
+}
+
+sub file_mtime {
+    my $self = shift;
+    return 0 unless $self->file;
+    return (stat($self->file))[9] || 0;
+}
+
+sub file_size {
+    my $self = shift;
+    return 0 unless $self->file;
+    return (stat($self->file))[7] || 0;
+}
+
+sub content_mtime {
+    my $self = shift;
+    $self->content unless $self->{content};
+    return $self->{content_mtime};
+}
+
+sub content_size {
+    my $self = shift;
+    $self->content unless $self->{content};
+    return $self->{content_size};
+}
+
+sub refresh {
+    my $self = shift;
+    return 0 unless $self->{rsc};
+    if ($self->stale) {
+        delete $self->{digest};
+        delete $self->{content};
+        return 1;
+    }
+    return 0;
+}
+
+sub stale {
+    my $self = shift;
+    return 0 unless $self->{rsc};
+    return
+        ($self->file_mtime > $self->content_mtime) ||
+        ($self->file_size != $self->content_size);
 }
 
 =head2 $asset->key
 
-Returns the unique key for the $asset. Usually the path of the $asset, but for content-based assets returns a value based off of $asset->digest
+Returns the unique key for the $asset. Usually the path/filename of the $asset, but for content-based assets returns a value based off of $asset->digest
 
 =cut
 
 sub key {
     my $self = shift;
-    if ($self->{rsc}) {
-        return $self->path;
-    }
-    else {
-        return $self->{key} ||= '%' . $self->digest;
-    }
+    return $self->path || ($self->{key} ||= '%' . $self->digest);
 }
 
 =head2 $asset->hide
@@ -259,3 +295,12 @@ sub inline {
 }
 
 1;
+
+__END__
+
+#    elsif (0 && $base && $content) { # Nonsense scenario?
+#        croak "Don't have a type for this asset" unless $type;
+#        my $path = File::Assets::Util->build_asset_path(undef, type => $type, digest => $self->digest);
+#        $self->{rsc} = $base->child($path);
+#        $self->{type} = $type;
+#    }

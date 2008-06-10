@@ -16,8 +16,9 @@ SKIP: {
     my $assets = File::Assets->new(base => URI::ToDisk->new($scratch->base, "http://www.example.com/assets"));
     my $asset = $assets->include("static/css/apple.css");
     ok($asset);
-    ok(-e $asset->file);
-    ok(-s _);
+    ok(-f $asset->file);
+    is(-s _, 39);
+    is($asset->content_size, -s _);
     is($asset->uri, "http://www.example.com/assets/static/css/apple.css");
 }
 

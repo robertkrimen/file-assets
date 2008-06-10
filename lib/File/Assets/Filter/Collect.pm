@@ -26,7 +26,7 @@ my %default = (qw/
         skip_if_exists 0
         skip_inline 1
         check_content 0
-        content_digest 0
+        content_digest 1
         check_age 1 
         check_digest 1
     /,
@@ -122,7 +122,7 @@ sub should_build {
 
     if ($self->cfg->{check_age}) {
         my $mtime = $self->mtime;
-        return 1 if $mtime > $self->output_asset->mtime;
+        return 1 if $mtime > $self->output_asset->file_mtime;
     }
 
     if ($self->cfg->{check_digest}) {

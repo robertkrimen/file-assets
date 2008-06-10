@@ -3,10 +3,11 @@ package File::Assets::Util;
 use strict;
 use warnings;
 
+use File::Assets::Carp;
+
 use MIME::Types();
 use Scalar::Util qw/blessed/;
 use Module::Pluggable search_path => q/File::Assets::Filter/, require => 1, sub_name => q/filter_load/;
-use Carp::Clan qw/^File::Assets/;
 use Digest;
 use File::Assets::Asset;
 
@@ -138,6 +139,7 @@ sub build_output_path {
 #    }
 
     $path = '%n%-l%-d.%e' unless $path;
+    $path = "$path/" if blessed $path && $path->isa("Path::Class::Dir");
     $path .= '%n%-l%-d.%e' if $path && $path =~ m/\/$/;
     $path .= '.%e' if $path =~ m/(?:^|\/)[^.]+$/;
 

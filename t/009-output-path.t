@@ -4,6 +4,8 @@ use strict;
 
 use Test::More qw/no_plan/;
 use t::Test;
+use Path::Class;
+
 my $assets = t::Test->assets;
 
 sub output_asset_path {
@@ -24,6 +26,7 @@ sub output_path {
 }
 
 is(output_asset_path("xyzzy/"), "/static/xyzzy/assets.css");
+is(output_asset_path(dir "xyzzy"), "/static/xyzzy/assets.css");
 is(output_asset_path("xyzzy"), "/static/xyzzy.css");
 is(output_asset_path(\"xyzzy"), "/static/xyzzy");
 is(output_asset_path(\"/xyzzy"), "/xyzzy");
