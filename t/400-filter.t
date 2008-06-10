@@ -20,16 +20,16 @@ $assets->filter_clear;
 
 ok($filter = $assets->filter([ "TestCollect" ]));
 compare($assets->export, qw(
-    http://example.com/static/assets-39b784b6d86594ab3b4d9179d15c5514.css
-    http://example.com/static/assets-096f395bf653a35849f7d4f4ac741140.js
+    http://example.com/static/assets-b11bf9a77b520852e95af3e0b5c1aa95.css
+    http://example.com/static/assets-7442c488c0bf3d37fc6bece0b5b8eea9.js
 ));
 
-is($scratch->read("static/assets-39b784b6d86594ab3b4d9179d15c5514.css"), "/* Everything is replaced with this! */");
+is($scratch->read("static/assets-b11bf9a77b520852e95af3e0b5c1aa95.css"), "/* Everything is replaced with this! */");
 
 $assets->name("base");
 compare($assets->export, qw(
-    http://example.com/static/base-39b784b6d86594ab3b4d9179d15c5514.css
-    http://example.com/static/base-096f395bf653a35849f7d4f4ac741140.js
+    http://example.com/static/base-b11bf9a77b520852e95af3e0b5c1aa95.css
+    http://example.com/static/base-7442c488c0bf3d37fc6bece0b5b8eea9.js
 ));
 
 $assets->set_output_path_scheme([
@@ -44,6 +44,6 @@ $assets->set_output_path_scheme([
     [ "*" => "static/xyzzy/" ],
 ]);
 compare($assets->export, qw(
-    http://example.com/static/static/xyzzy/base-39b784b6d86594ab3b4d9179d15c5514.css
-    http://example.com/static/static/xyzzy/base-096f395bf653a35849f7d4f4ac741140.js
+    http://example.com/static/static/xyzzy/base-b11bf9a77b520852e95af3e0b5c1aa95.css
+    http://example.com/static/static/xyzzy/base-7442c488c0bf3d37fc6bece0b5b8eea9.js
 ));

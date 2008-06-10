@@ -166,8 +166,8 @@ sub build_output_path {
 #    $path =~ s/%k/$_{kind}/g if $_{kind};
 #    $path =~ s/%h/$_{head}/g if $_{head};
     _substitute \$path, e => $_{extension};
-    _substitute \$path, D => $_{content_digest};
-    _substitute \$path, d => $_{key_digest};
+    _substitute \$path, d => $_{content_digest};
+    _substitute \$path, D => $_{key_digest};
     _substitute \$path, n => $_{name};
     _substitute \$path, k => $_{kind};
     _substitute \$path, h => $_{head};

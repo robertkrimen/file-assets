@@ -22,7 +22,6 @@ sub new {
         elsif ($name eq 1) {
             $name = "__File::Assets::Cache_cache__";
         }
-
         return $cache{$name} if $cache{$name}
     }
 
