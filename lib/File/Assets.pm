@@ -9,11 +9,11 @@ File::Assets - Manage .css and .js assets in a web application
 
 =head1 VERSION
 
-Version 0.061
+Version 0.060_2
 
 =cut
 
-our $VERSION = '0.061';
+our $VERSION = '0.060_2';
 
 =head1 SYNOPSIS
 
