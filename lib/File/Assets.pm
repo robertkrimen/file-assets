@@ -9,25 +9,29 @@ File::Assets - Manage .css and .js assets in a web application
 
 =head1 VERSION
 
-Version 0.060_3
+Version 0.060_4
 
 =cut
 
-our $VERSION = '0.060_3';
+our $VERSION = '0.060_4';
 
 =head1 SYNOPSIS
 
     use File::Assets
 
-    my $assets = File::Assets->new( base => [ $uri_root, $htdocs_root ] );
+    my $assets = File::Assets->new( base => [ $uri_root, $htdocs_root ] )
 
-    $assets->include("/static/style.css"); # File::Assets will automatically detect the type based on the extension
+    $assets->include("/static/style.css") # File::Assets will automatically detect the type based on the extension
 
     # Then, later ...
     
-    $assets->include("/static/main.js");
-    $assets->include("/static/style.css"); # This asset won't get included twice, as File::Assets will ignore repeats of a path
+    $assets->include("/static/main.js")
+    $assets->include("/static/style.css") # This asset won't get included twice, as File::Assets will ignore repeats of a path
 
+    # You can also include external assets:
+
+    $assets->include("http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js");
+    
     # And then, in your .tt (Template Toolkit) files:
 
     [% WRAPPER page.tt %]
@@ -68,7 +72,11 @@ our $VERSION = '0.060_3';
 
         print $asset->uri, "\n";
     }
-    
+
+Use the minify option to perform minification before export
+
+    my $assets = File::Assets->new( minify => 1, ... )
+
 =head1 DESCRIPTION
 
 File::Assets is a tool for managing JavaScript and CSS assets in a (web) application. It allows you to "publish" assests in one place after having specified them in different parts of the application (e.g. throughout request and template processing phases).
@@ -758,6 +766,16 @@ sub output_asset {
 =head1 AUTHOR
 
 Robert Krimen, C<< <rkrimen at cpan.org> >>
+
+=head1 SEE ALSO
+
+L<Catalyst::Plugin::Assets>
+
+L<Google::AJAX::Library>
+
+L<JS::YUI::Loader>
+
+L<JS::jQuery::Loader>
 
 =head1 BUGS
 

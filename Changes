@@ -1,6 +1,9 @@
 TODO:
  - "Duplicate assets (via ->include(...)" testing?
 
+0.060_4 Wednesday June 11 10:57:01 PDT 2008:
+ - Took out JSON::XS reference that was killing tests
+
 0.060_3 Tuesday June 10 14:51:55 PDT 2008:
  - Dropped the key digest and renamed content digest to fingerprint
  - Changed output path patterning and renamed/deprecated a bunch of directives

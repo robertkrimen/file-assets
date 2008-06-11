@@ -17,6 +17,8 @@ requires 'Path::Resource';
 requires 'Scalar::Util';
 requires 'Tie::LLHash';
 requires 'Digest';
+requires 'Digest::MD5';
+requires 'Digest::SHA';
 requires 'Carp::Clan::Share';
 requires 'Object::Tiny';
 requires 'HTML::Declare';

@@ -98,14 +98,6 @@ sub parse_filter {
     }
 
     return $_filter;
-#    my $group = shift;
-#    my %new = ref $_[0] eq "HASH" ? %{ $_[0] } : @_;
-#    if ($filter =~ m/\s*concat\s*/i) {
-#        return File::Assets::Filter::Concat->new(group => $group, %new);
-#    }
-#    elsif ($filter =~ m/\s*yuicompressor\s*/i) {
-#        return File::Assets::Filter::YUICompressor->new(group => $group, %new);
-#    }
 }
 
 sub _substitute($$$;$$) {
@@ -136,13 +128,6 @@ sub build_output_path {
 
     return $$path if ref $path eq "SCALAR";
 
-#   TODO Maybe we should put this here, maybe not
-#    if ($output =~ m/^\//) {
-#    }
-#    elsif ($assets) {
-#        $output = $assets->path->child($output);
-#    }
-
     $path = '%n%-l%-f.%e' unless $path;
     $path = "$path/" if blessed $path && $path->isa("Path::Class::Dir");
     $path .= '%n%-l%-f.%e' if $path && $path =~ m/\/$/;
@@ -163,19 +148,6 @@ sub build_output_path {
         );
     }
 
-#    $path =~ s/%e/$_{extension}/g if $_{extension};
-#    $path =~ s/%D/$_{content_digest}/g if $_{content_digest};
-#    $path =~ s/%d/$_{key_digest}/g if $_{key_digest};
-#    $path =~ s/%n/$_{name}/g if $_{name};
-#    $path =~ s/%k/$_{kind}/g if $_{kind};
-#    $path =~ s/%h/$_{head}/g if $_{head};
-#    $_{tail} = "" unless defined $_{tail};
-#    $path =~ s/%a/$_{tail}/g;
-#    my $tail = $_{tail};
-#    $tail = "-$tail" if length $tail;
-#    $path =~ s/%b/$tail/g;
-
-
     my $original_path = $path; 
 
     $path =~ s/%b/%-l/g and carp "\%b is deprecated as a path pattern (in \"$original_path\")";
@@ -191,16 +163,30 @@ sub build_output_path {
     _substitute \$path, D => $_{fingerprint}, 1 => $original_path;
     _substitute \$path, a => $_{tail}, 1 => $original_path;
 
-#    $path =~ m/(?<!%)%[\-\/\.]?[D]/ and carp "Unmatched content digest substitution %D in output path pattern ($path)\n" .
-#                                        "Did you forget to set \"content_digest => 1\" in the filter?";
-#    $path =~ m/(?<!%)%[\-\/\.]?[eDdnkhl]/ and carp "Unmatched substitution in output path pattern ($path)";
-#    $path =~ m/(?<!%)%[\-\/\.]?[ab]/ and carp "Unmatched substitution in output path pattern ($path): \%a and \%b are deprecated: use \%l and \%-l instead";
-
     $path =~ s/%%/%/g;
 
     return $path;
 }
+1;
 
+__END__
+
+#   TODO Maybe we should put this here, maybe not
+#    if ($output =~ m/^\//) {
+#    }
+#    elsif ($assets) {
+#        $output = $assets->path->child($output);
+#    }
+
+
+#    my $group = shift;
+#    my %new = ref $_[0] eq "HASH" ? %{ $_[0] } : @_;
+#    if ($filter =~ m/\s*concat\s*/i) {
+#        return File::Assets::Filter::Concat->new(group => $group, %new);
+#    }
+#    elsif ($filter =~ m/\s*yuicompressor\s*/i) {
+#        return File::Assets::Filter::YUICompressor->new(group => $group, %new);
+#    }
 #sub build_asset_path {
 #    my $class = shift;
 #    my $output = shift;
@@ -242,4 +228,21 @@ sub build_output_path {
 #    return $output;
 #}
 
-1;
+#    $path =~ s/%e/$_{extension}/g if $_{extension};
+#    $path =~ s/%D/$_{content_digest}/g if $_{content_digest};
+#    $path =~ s/%d/$_{key_digest}/g if $_{key_digest};
+#    $path =~ s/%n/$_{name}/g if $_{name};
+#    $path =~ s/%k/$_{kind}/g if $_{kind};
+#    $path =~ s/%h/$_{head}/g if $_{head};
+#    $_{tail} = "" unless defined $_{tail};
+#    $path =~ s/%a/$_{tail}/g;
+#    my $tail = $_{tail};
+#    $tail = "-$tail" if length $tail;
+#    $path =~ s/%b/$tail/g;
+
+
+#    $path =~ m/(?<!%)%[\-\/\.]?[D]/ and carp "Unmatched content digest substitution %D in output path pattern ($path)\n" .
+#                                        "Did you forget to set \"content_digest => 1\" in the filter?";
+#    $path =~ m/(?<!%)%[\-\/\.]?[eDdnkhl]/ and carp "Unmatched substitution in output path pattern ($path)";
+#    $path =~ m/(?<!%)%[\-\/\.]?[ab]/ and carp "Unmatched substitution in output path pattern ($path): \%a and \%b are deprecated: use \%l and \%-l instead";
+

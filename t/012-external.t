@@ -4,8 +4,8 @@ use strict;
 
 use Test::More qw/no_plan/;
 use t::Test;
-use JSON::XS;
-my $json = JSON::XS->new->allow_blessed->pretty;
+#use JSON::XS;
+#my $json = JSON::XS->new->allow_blessed->pretty;
 my $scratch = t::Test::Scratch->new;
 
 sub assets {
