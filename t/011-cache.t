@@ -19,14 +19,14 @@ sub assets {
 my ($cache, $asset, $content, $digest, $size, $mtime);
 {
     diag "First assets";
-    my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify 1));
+    my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify concat));
 
     compare($assets->export, qw(
         http://example.com/static/assets.css
         http://example.com/static/assets.js
     ));
     ok($scratch->exists("static/assets.css"));
-    is(-s $scratch->file("static/assets.css"), 1);
+    is(-s $scratch->file("static/assets.css"), 79);
 
     $cache = $assets->cache;
     $asset = $assets->fetch("/static/css/apple.css");
@@ -35,14 +35,14 @@ my ($cache, $asset, $content, $digest, $size, $mtime);
 
 {
     diag "Second assets";
-    my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify 1));
+    my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify concat));
 
     compare($assets->export, qw(
         http://example.com/static/assets.css
         http://example.com/static/assets.js
     ));
     ok($scratch->exists("static/assets.css"));
-    is(-s $scratch->file("static/assets.css"), 1);
+    is(-s $scratch->file("static/assets.css"), 79);
 
     is($cache, $assets->cache);
     isnt($asset, $assets->fetch("/static/css/apple.css"));
@@ -58,14 +58,14 @@ my ($cache, $asset, $content, $digest, $size, $mtime);
 /* This is custom.css */
 _END_
 
-    my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify 1));
+    my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify concat));
 
     compare($assets->export, qw(
         http://example.com/static/assets.css
         http://example.com/static/assets.js
     ));
     ok($scratch->exists("static/assets.css"));
-    is(-s $scratch->file("static/assets.css"), 1);
+    is(-s $scratch->file("static/assets.css"), 79);
 
     is($cache, $assets->cache);
     isnt($asset, $assets->fetch("/static/css/apple.css"));
@@ -78,14 +78,14 @@ _END_
 
 {
     diag "Fourth assets";
-    my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify 1));
+    my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify concat));
 
     compare($assets->export, qw(
         http://example.com/static/assets.css
         http://example.com/static/assets.js
     ));
     ok($scratch->exists("static/assets.css"));
-    is(-s $scratch->file("static/assets.css"), 1);
+    is(-s $scratch->file("static/assets.css"), 79);
 
     is($digest, $assets->fetch("/static/css/apple.css")->digest);
 

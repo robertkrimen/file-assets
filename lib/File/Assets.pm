@@ -9,11 +9,11 @@ File::Assets - Manage .css and .js assets in a web application
 
 =head1 VERSION
 
-Version 0.060_4
+Version 0.060_5
 
 =cut
 
-our $VERSION = '0.060_4';
+our $VERSION = '0.060_5';
 
 =head1 SYNOPSIS
 
@@ -235,13 +235,14 @@ sub new {
     }
 
     if (my $minify = $_{minify}) {
-#        if      ($minify eq 1 || $minify =~ m/^\s*(?:minifier-)?best\s*$/i)  { $self->filter("minifier-best") }
+#       if      ($minify eq 1 || $minify =~ m/^\s*(?:minifier-)?best\s*$/i)  { $self->filter("minifier-best") }
         if      ($minify eq 1 || $minify =~ m/^\s*(?:minifier-)?best\s*$/i)  { $self->filter("minifier") }
         elsif   ($minify =~ m/^\s*yuicompressor:/)                           { $self->filter($minify) }
         elsif   ($minify =~ m/\.jar/i)                                       { $self->filter("yuicompressor:$minify") }
-#        elsif   ($minify =~ m/^\s*(?:minifier-)?xs\s*$/i)                    { $self->filter("minifier-xs") }
+#       elsif   ($minify =~ m/^\s*(?:minifier-)?xs\s*$/i)                    { $self->filter("minifier-xs") }
         elsif   ($minify =~ m/^\s*(?:minifier-)?xs\s*$/i)                    { $self->filter("minifier") }
         elsif   ($minify =~ m/^\s*minifier\s*$/i)                            { $self->filter("minifier") }
+        elsif   ($minify =~ m/^\s*concat\s*$/i)                              { $self->filter("concat") }
         else                                                                 { croak "Don't understand minify option ($minify)" }
     }
 

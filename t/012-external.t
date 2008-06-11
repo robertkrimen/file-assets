@@ -28,7 +28,7 @@ sub assets {
 }
 
 {
-    my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify 1));
+    my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify concat));
 
     $assets->include("http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js");
     compare($assets->export, qw(
@@ -39,7 +39,7 @@ sub assets {
 }
 
 {
-    my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify 1));
+    my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify concat));
 
     $assets->include("http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js", -100);
     compare($assets->export, qw(

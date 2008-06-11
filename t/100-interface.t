@@ -15,19 +15,21 @@ sub assets {
 }
 
 {
-    my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify 1));
+    my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify concat));
 
     compare($assets->export, qw(
         http://example.com/static/assets.css
         http://example.com/static/assets.js
     ));
     ok($scratch->exists("static/assets.css"));
-    is(-s $scratch->file("static/assets.css"), 1);
+    is(-s $scratch->file("static/assets.css"), 79);
 
     $scratch->cleanup;
 }
 
-{
+SKIP: {
+    skip 'install ./yuicompressor.jar to enable this test' unless -e "./yuicompressor.jar";
+
     {
         my ($scratch, $assets) = assets(qw(output_path %n%-l.%e minify ./yuicompressor.jar));
 
@@ -52,7 +54,7 @@ sub assets {
 }
 
 {
-    my ($scratch, $assets) = assets(qw(output_path %n%-f.%e minify 1));
+    my ($scratch, $assets) = assets(qw(output_path %n%-f.%e minify concat));
 
     compare($assets->export, qw(
         http://example.com/static/assets-b11bf9a77b520852e95af3e0b5c1aa95.css
