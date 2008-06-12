@@ -26,7 +26,7 @@ my ($cache, $asset, $content, $digest, $size, $mtime);
         http://example.com/static/assets.js
     ));
     ok($scratch->exists("static/assets.css"));
-    is(-s $scratch->file("static/assets.css"), 79);
+    cmp_ok(-s $scratch->file("static/assets.css"), '>=' => 64);
 
     $cache = $assets->cache;
     $asset = $assets->fetch("/static/css/apple.css");
@@ -42,7 +42,7 @@ my ($cache, $asset, $content, $digest, $size, $mtime);
         http://example.com/static/assets.js
     ));
     ok($scratch->exists("static/assets.css"));
-    is(-s $scratch->file("static/assets.css"), 79);
+    cmp_ok(-s $scratch->file("static/assets.css"), '>=' => 64);
 
     is($cache, $assets->cache);
     isnt($asset, $assets->fetch("/static/css/apple.css"));
@@ -65,7 +65,7 @@ _END_
         http://example.com/static/assets.js
     ));
     ok($scratch->exists("static/assets.css"));
-    is(-s $scratch->file("static/assets.css"), 79);
+    cmp_ok(-s $scratch->file("static/assets.css"), '>=' => 64);
 
     is($cache, $assets->cache);
     isnt($asset, $assets->fetch("/static/css/apple.css"));
@@ -85,7 +85,7 @@ _END_
         http://example.com/static/assets.js
     ));
     ok($scratch->exists("static/assets.css"));
-    is(-s $scratch->file("static/assets.css"), 79);
+    cmp_ok(-s $scratch->file("static/assets.css"), '>=' => 64);
 
     is($digest, $assets->fetch("/static/css/apple.css")->digest);
 

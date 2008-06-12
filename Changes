@@ -1,6 +1,9 @@
 TODO:
  - "Duplicate assets (via ->include(...)" testing?
 
+0.060_6 Thursday June 12 13:08:32 PDT 2008:
+ - Fixed some tests that were working but a little too tight
+
 0.060_5 Wednesday June 11 11:02:00 PDT 2008:
  - Fixed a YUI Compressor test
  - Changed "minify 1" to "minify concat" in tests

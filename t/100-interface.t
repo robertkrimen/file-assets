@@ -22,7 +22,7 @@ sub assets {
         http://example.com/static/assets.js
     ));
     ok($scratch->exists("static/assets.css"));
-    is(-s $scratch->file("static/assets.css"), 79);
+    cmp_ok(-s $scratch->file("static/assets.css"), '>=' => 64);
 
     $scratch->cleanup;
 }
