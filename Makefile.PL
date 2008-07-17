@@ -38,8 +38,8 @@ _END_
     map { my ($pk, $vr) = split m/\s/; recommends $pk => $vr || 0 } grep { ! /^\s*#/ } split m/\n/, <<_END_;
 CSS::Minifier
 JavaScript::Minifier
-CSS::Minifier::XS
-JavaScript::Minifier::XS
+CSS::Minifier::XS 0.3
+JavaScript::Minifier::XS 0.3
 _END_
 }
 
