@@ -1,5 +1,48 @@
 use inc::Module::Install 0.64;
 
+{
+    require ExtUtils::MakeMaker;
+    use strict;
+    no strict 'refs';
+
+    my $libscan = \&{"ExtUtils::MM_Any::libscan"};
+    *{"ExtUtils::MM_Any::libscan"} = sub {
+        return '' unless $libscan->(@_);
+        return '' if $_[1] =~ /\.sw[p-z]$/;
+        return $_[1];
+    };
+}
+
+{
+    map { my ($pk, $vr) = split m/\s/; build_requires $pk => $vr || 0 } grep { ! /^\s*#/ } split m/\n/, <<_END_;
+Test::Memory::Cycle
+Directory::Scratch
+_END_
+
+    map { my ($pk, $vr) = split m/\s/; requires $pk => $vr || 0 } grep { ! /^\s*#/ } split m/\n/, <<_END_;
+MIME::Types
+Module::Pluggable
+Path::Resource
+Scalar::Util
+Tie::LLHash
+Digest
+Digest::MD5
+Digest::SHA
+Carp::Clan::Share
+Object::Tiny
+HTML::Declare
+XML::Tiny
+IO::Scalar
+_END_
+
+    map { my ($pk, $vr) = split m/\s/; recommends $pk => $vr || 0 } grep { ! /^\s*#/ } split m/\n/, <<_END_;
+CSS::Minifier
+JavaScript::Minifier
+CSS::Minifier::XS
+JavaScript::Minifier::XS
+_END_
+}
+
 use 5.008001; 
 perl_version '5.8.1';
 
@@ -8,27 +51,6 @@ all_from 'lib/File/Assets.pm';
 author   'Robert Krimen <rkrimen@cpan.org>';
 
 build_requires 'Test::More';
-build_requires 'Test::Memory::Cycle';
-build_requires 'Directory::Scratch';
-
-requires 'MIME::Types';
-requires 'Module::Pluggable';
-requires 'Path::Resource';
-requires 'Scalar::Util';
-requires 'Tie::LLHash';
-requires 'Digest';
-requires 'Digest::MD5';
-requires 'Digest::SHA';
-requires 'Carp::Clan::Share';
-requires 'Object::Tiny';
-requires 'HTML::Declare';
-requires 'XML::Tiny';
-requires 'IO::Scalar';
-
-recommends 'CSS::Minifier';
-recommends 'JavaScript::Minifier';
-#recommends 'CSS::Minifier::XS';
-#recommends 'JavaScript::Minifier::XS';
 
 auto_install;
 

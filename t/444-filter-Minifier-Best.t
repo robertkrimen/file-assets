@@ -1,7 +1,7 @@
 #!perl -w
 BEGIN {
     use Test::More;
-    plan skip_all => 'Minifier::XS is too buggy right now';
+#    plan skip_all => 'Minifier::XS is too buggy right now';
     plan skip_all => 'install JavaScript::Minifier::* and CSS:Minifier::* to enable this test' and exit unless 
         (eval "require JavaScript::Minifier::XS" &&
         eval "require CSS::Minifier::XS") ||
@@ -36,7 +36,7 @@ use t::Test;
 
     ok($scratch->exists("static/assets.css"));
     ok(-s $scratch->file("static/assets.css"));
-    is($scratch->read("static/assets.css"), 'div.cherry{font-weight:bold;font-weight:100;border:1px solid #aaaaaa}div.cherry em{color:red}');
+    is($scratch->read("static/assets.css"), 'div.cherry{font-weight:bold;font-weight:100;border:1px solid #aaaaaa;}div.cherry em{color:red;}');
 
     ok($scratch->exists("static/assets.js"));
     ok(-s $scratch->file("static/assets.js"));
