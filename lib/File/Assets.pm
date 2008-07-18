@@ -19,7 +19,7 @@ our $VERSION = '0.060_6';
 
     use File::Assets
 
-    my $assets = File::Assets->new( base => [ $uri_root, $htdocs_root ] )
+    my $assets = File::Assets->new( base => [ $uri_root, $dir_root ] )
 
     $assets->include("/static/style.css") # File::Assets will automatically detect the type based on the extension
 
@@ -198,7 +198,7 @@ You can configure the object with the following:
 
                     # "0" or "" or undef - Don't do any minfication (this is the default)
 
-                    # "./a/path/to/yuicompressor.jar" - Will use YUI Compressor via the given .jar for minification
+                    # "./path/to/yuicompressor.jar" - Will use YUI Compressor via the given .jar for minification
 
                     # "minifier" - Will use L<JavaScript::Minifier> & L<CSS::Minifier> for minification
 

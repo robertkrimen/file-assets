@@ -80,7 +80,6 @@ sub parse_rsc {
             $uri = $resource->URI;
             $dir = $resource->path;
         }
-        # TODO: URI::ToDisk
     }
     return Path::Resource->new(uri => $uri, dir => $dir, path => $path);
 }
@@ -170,82 +169,5 @@ sub build_output_path {
 
     return $path;
 }
+
 1;
-
-__END__
-
-#   TODO Maybe we should put this here, maybe not
-#    if ($output =~ m/^\//) {
-#    }
-#    elsif ($assets) {
-#        $output = $assets->path->child($output);
-#    }
-
-
-#    my $group = shift;
-#    my %new = ref $_[0] eq "HASH" ? %{ $_[0] } : @_;
-#    if ($filter =~ m/\s*concat\s*/i) {
-#        return File::Assets::Filter::Concat->new(group => $group, %new);
-#    }
-#    elsif ($filter =~ m/\s*yuicompressor\s*/i) {
-#        return File::Assets::Filter::YUICompressor->new(group => $group, %new);
-#    }
-#sub build_asset_path {
-#    my $class = shift;
-#    my $output = shift;
-
-#    return $$output if ref $output eq "SCALAR";
-
-#    local %_ = @_;
-
-#    my $assets = $_{assets};
-#    my $filter = $_{filter};
-
-#    $output = $filter->output unless defined $output;
-#    $output = $assets->output unless defined $assets;
-
-#    return $$output if ref $output eq "SCALAR";
-
-##   TODO Maybe we should put this here, maybe not
-##    if ($output =~ m/^\//) {
-##    }
-##    elsif ($assets) {
-##        $output = $assets->path->child($output);
-##    }
-
-#    $output = "%n.%e" unless $output;
-#    $output .= "%n.%e" if $output && $output =~ m/\/$/;
-#    $output .= ".%e" if $output =~ m/(?:^|\/)[^.]+$/;
-#    my $type = $_{type};
-#    my $extension;
-#    $extension = ($type->extensions)[0] if defined $type;
-#    $output =~ s/%e/$extension/g if defined $extension;
-#    $output =~ s/%D/$_{content_digest}/g if $_{content_digest};
-#    $output =~ s/%d/$_{digest}/g if $_{digest};
-#    $output =~ s/%n/$_{name}/g if $_{name};
-
-#    $output =~ m/(?<!%)%[eDdn]/ and croak "Unmatched substitution in output pattern ($output)";
-
-#    $output =~ s/%%/%/g;
-
-#    return $output;
-#}
-
-#    $path =~ s/%e/$_{extension}/g if $_{extension};
-#    $path =~ s/%D/$_{content_digest}/g if $_{content_digest};
-#    $path =~ s/%d/$_{key_digest}/g if $_{key_digest};
-#    $path =~ s/%n/$_{name}/g if $_{name};
-#    $path =~ s/%k/$_{kind}/g if $_{kind};
-#    $path =~ s/%h/$_{head}/g if $_{head};
-#    $_{tail} = "" unless defined $_{tail};
-#    $path =~ s/%a/$_{tail}/g;
-#    my $tail = $_{tail};
-#    $tail = "-$tail" if length $tail;
-#    $path =~ s/%b/$tail/g;
-
-
-#    $path =~ m/(?<!%)%[\-\/\.]?[D]/ and carp "Unmatched content digest substitution %D in output path pattern ($path)\n" .
-#                                        "Did you forget to set \"content_digest => 1\" in the filter?";
-#    $path =~ m/(?<!%)%[\-\/\.]?[eDdnkhl]/ and carp "Unmatched substitution in output path pattern ($path)";
-#    $path =~ m/(?<!%)%[\-\/\.]?[ab]/ and carp "Unmatched substitution in output path pattern ($path): \%a and \%b are deprecated: use \%l and \%-l instead";
-
