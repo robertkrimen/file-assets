@@ -77,7 +77,15 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new(@_, CLEANUP => 0);
     $self->create_tree({
-        (map { $_ => "/* Test file: $_ */\n" } qw(static/css/apple.css static/css/banana.css static/js/apple.js)),
+        (map { $_ => "/* Test file: $_ */\n" } qw(
+            static/css/apple.css
+            static/css/banana.css
+            static/js/apple.js
+            js/grape.js
+            js/plum.js
+            css/grape.css
+            other/pear.js
+        )),
         'static/css/cherry.css' => <<_END_,
 div.cherry {
     font-weight: bold;

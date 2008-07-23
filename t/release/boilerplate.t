@@ -1,8 +1,4 @@
 #!perl -T
-BEGIN {
-    use Test::More;
-    plan skip_all => 'set TEST_AUTHOR to enable this test' and exit unless $ENV{TEST_AUTHOR};
-}
 
 use strict;
 use warnings;

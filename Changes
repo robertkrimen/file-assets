@@ -1,6 +1,11 @@
 TODO:
  - "Duplicate assets (via ->include(...)" testing?
 
+0.060_7 Wednesday July 23 12:09:34 PDT 2008:
+ - Reactivated *::Minifier::XS since fixed
+ - Added some set_ methods to File::Assets
+ - Added some tests and documentation
+
 0.060_6 Thursday June 12 13:08:32 PDT 2008:
  - Fixed some tests that were working but a little too tight
 

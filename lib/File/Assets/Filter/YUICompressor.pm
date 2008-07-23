@@ -21,13 +21,14 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new(@_);
     local %_ = @_;
-    # TODO $self->parse_cfg(\%default, \%_);
+    # TODO-? $self->parse_cfg(\%default, \%_);
     while (my ($setting, $value) = each %default) {
         $self->cfg->{$setting} = exists $_{$setting} ? $_{$setting} : $value;
     }
     $self->cfg->{jar} or croak "You need to specify the location of the YUI Compressor jar file (something like \"yuicompressor-?.?.?.jar\")";
     -f $self->cfg->{jar} && -r _ or croak "Doesn't exist/can't read: ", $self->cfg->{jar};
-    # TODO Test if we can execute "java"
+    # TODO-f Test if we can execute "java"
+
 #    -f $self->cfg->{java} && -x _ or croak "Doesn't exist/can't execute: ", $self->cfg->{java};
 
 #    croak "You must specify a type to filter by (either js or css)" unless $self->where->{type};
@@ -75,7 +76,7 @@ sub build_content {
     }
     close $yc_io or warn $!;
 
-    # TODO Fallback to concat if it doesn't work
+    # TODO-f Fallback to concat if it doesn't work
 
     return undef; # We (the jar) already put the content in the asset file, so we return undef here.
 }

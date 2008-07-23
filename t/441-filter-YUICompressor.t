@@ -43,10 +43,9 @@ is(-s $scratch->file("static/YUI.js"), 0);
 
 $assets->filter_clear;
 
-# TODO This is a little weird, better interface for this?
 $assets->{output_path_scheme} = [
-        [ ":yuicompressor" => "xyzzy/YUI.%e" ],
-    ];
+    [ ":yuicompressor" => "xyzzy/YUI.%e" ],
+];
 
 ok($assets->filter(js => "yuicompressor" => { jar => "./yuicompressor.jar" }));
 compare($assets->export, qw(

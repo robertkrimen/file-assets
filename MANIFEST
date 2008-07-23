@@ -49,7 +49,7 @@ t/009-output-path.t
 t/010-css-media.t
 t/011-cache.t
 t/012-external.t
-t/100-interface.t
+t/100-usage.t
 t/400-filter.t
 t/401-filter-caching.t
 t/440-filter-Concat.t
@@ -59,8 +59,8 @@ t/443-filter-Minifier-XS.t
 t/444-filter-Minifier-Best.t
 t/9000-x-javascript.t
 t/9001-inline-content-escaping.t
-t/author/boilerplate.t
-t/author/pod-coverage.t
-t/author/pod.t
+t/release/boilerplate.t
+t/release/pod-coverage.t
+t/release/pod.t
 t/Test.pm
 

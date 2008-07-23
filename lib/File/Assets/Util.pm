@@ -56,10 +56,9 @@ sub parse_type {
     $type = ".$type" if $type !~ m/\W+/;
     # Make sure we get stringified version of $type, whatever it is
     $type .= "";
-    # TODO Document this, and is this right?
-    # TODO Test.
-    $type = "application/javascript" if $type eq "text/javascript";
-    return $class->types->mimeTypeOf($type."") || $class->types->type($type);
+    $type = "application/javascript" if $type =~ m{^text/javascript$}i;
+    $type = lc $type;
+    return $class->types->mimeTypeOf($type) || $class->types->type($type);
 }
 
 sub parse_rsc {

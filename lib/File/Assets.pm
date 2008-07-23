@@ -9,17 +9,19 @@ File::Assets - Manage .css and .js assets in a web application
 
 =head1 VERSION
 
-Version 0.060_6
+Version 0.060_7
 
 =cut
 
-our $VERSION = '0.060_6';
+our $VERSION = '0.060_7';
 
 =head1 SYNOPSIS
 
     use File::Assets
 
     my $assets = File::Assets->new( base => [ $uri_root, $dir_root ] )
+
+    $assets->set_output_path("built/") # Put minified files in $dir_root/built/... (the trailing slash is important)
 
     $assets->include("/static/style.css") # File::Assets will automatically detect the type based on the extension
 
@@ -81,7 +83,7 @@ Use the minify option to perform minification before export
 
 File::Assets is a tool for managing JavaScript and CSS assets in a (web) application. It allows you to "publish" assests in one place after having specified them in different parts of the application (e.g. throughout request and template processing phases).
 
-This package has the added bonus of assisting with minification and filtering of assets. Support is built-in for YUI Compressor (L<http://developer.yahoo.com/yui/compressor/>), L<JavaScript::Minifier>, and L<CSS::Minifier>.
+This package has the added bonus of assisting with minification and filtering of assets. Support is built-in for YUI Compressor (L<http://developer.yahoo.com/yui/compressor/>), L<JavaScript::Minifier>, L<CSS::Minifier>, L<JavaScript::Minifier::XS>, and L<CSS::Minifier::XS>.
 
 File::Assets was built with L<Catalyst> in mind, although this package is framework agnostic. Look at L<Catalyst::Plugin::Assets> for an easy way to integrate File::Assets with Catalyst.
 
@@ -154,6 +156,13 @@ A pattern of C<%n%-l.%e> can result in the following:
     assets-screen.css   # name of "assets", media type of "screen", an asset type of CSS (.css)
     assets.js           # name of "assets", an asset type of JavaScript (.js)
 
+If the pattern ends with a "/", then the default pattern will be appended
+
+If the pattern does not have an extension-like ending, then "%.e" will be appended
+
+    xyzzy/          => xyzzy/%n%-l-%f.%e
+    xyzzy           => xyzzy.%e
+
 =head2 Strange output or "sticky" content
 
 File::Assets uses built-in caching to share content across different objects (via File::Assets::Cache). If you're having problems
@@ -162,6 +171,8 @@ try disabling the cache by passing "cache => 0" to File::Assets->new
 =head1 METHODS
 
 =cut
+
+# If the pattern does NOT begin with a "/", then the base dir will be prepended
 
 use strict;
 use warnings;
@@ -214,19 +225,27 @@ sub new {
     my $self = bless {}, shift;
     local %_ = @_;
 
-    my $rsc = File::Assets::Util->parse_rsc($_{rsc} || $_{base_rsc} || $_{base});
-    $rsc->uri($_{uri} || $_{base_uri}) if $_{uri} || $_{base_uri};
-    $rsc->dir($_{dir} || $_{base_dir}) if $_{dir} || $_{base_dir};
-    $rsc->path($_{base_path}) if $_{base_path};
-    $self->{rsc} = $rsc;
+    $self->set_base($_{rsc} || $_{base_rsc} || $_{base});
+    $self->set_base_uri($_{uri} || $_{base_uri}) if $_{uri} || $_{base_uri};
+    $self->set_base_dir($_{dir} || $_{base_dir}) if $_{dir} || $_{base_dir};
+    $self->set_base_path($_{base_path}) if $_{base_path};
+
+    $self->set_output_path($_{output_path} || $_{output_path_scheme} || []);
+
+    $self->name($_{name});
+    
+    $_{cache} = 1 unless exists $_{cache};
+    $self->set_cache($_{cache}) if $_{cache};
+
+#    my $rsc = File::Assets::Util->parse_rsc($_{rsc} || $_{base_rsc} || $_{base});
+#    $rsc->uri($_{uri} || $_{base_uri}) if $_{uri} || $_{base_uri};
+#    $rsc->dir($_{dir} || $_{base_dir}) if $_{dir} || $_{base_dir};
+#    $rsc->path($_{base_path}) if $_{base_path};
+#    $self->{rsc} = $rsc;
 
     my %registry;
     $self->{registry} = tie(%registry, qw/Tie::LLHash/, { lazy => 1 });
     $self->{_registry_hash} = \%registry;
-
-    $self->{name} = $_{name};
-
-    $self->set_output_path_scheme($_{output_path} || $_{output_path_scheme} || []);
 
     $self->{filter_scheme} = {};
     my $filter_scheme = $_{filter} || $_{filters} || $_{filter_scheme} || [];
@@ -235,22 +254,13 @@ sub new {
     }
 
     if (my $minify = $_{minify}) {
-#       if      ($minify eq 1 || $minify =~ m/^\s*(?:minifier-)?best\s*$/i)  { $self->filter("minifier-best") }
-        if      ($minify eq 1 || $minify =~ m/^\s*(?:minifier-)?best\s*$/i)  { $self->filter("minifier") }
+        if      ($minify eq 1 || $minify =~ m/^\s*(?:minifier-)?best\s*$/i)  { $self->filter("minifier-best") }
         elsif   ($minify =~ m/^\s*yuicompressor:/)                           { $self->filter($minify) }
         elsif   ($minify =~ m/\.jar/i)                                       { $self->filter("yuicompressor:$minify") }
-#       elsif   ($minify =~ m/^\s*(?:minifier-)?xs\s*$/i)                    { $self->filter("minifier-xs") }
-        elsif   ($minify =~ m/^\s*(?:minifier-)?xs\s*$/i)                    { $self->filter("minifier") }
+        elsif   ($minify =~ m/^\s*(?:minifier-)?xs\s*$/i)                    { $self->filter("minifier-xs") }
         elsif   ($minify =~ m/^\s*minifier\s*$/i)                            { $self->filter("minifier") }
         elsif   ($minify =~ m/^\s*concat\s*$/i)                              { $self->filter("concat") }
         else                                                                 { croak "Don't understand minify option ($minify)" }
-    }
-
-    $_{cache} = 1 unless exists $_{cache};
-
-    if (my $cache = $_{cache}) {
-        $cache = File::Assets::Cache->new(name => $cache) unless blessed $cache && $cache->isa("File::Assets::Cache");
-        $self->{cache} = $cache;
     }
 
     return $self;
@@ -603,6 +613,85 @@ sub _exports {
     return map { $_->exports } @bucket;
 }
 
+=head2 $assets->set_name( <name> )
+
+Set the "name" of $assets
+
+This is exactly the same as
+
+    $assets->name( <name> )
+
+=cut
+
+
+=head2 $assets->set_base( <base> )
+
+Set the base uri, dir, and path for assets
+
+<base> can be a L<Path::Resource>, L<URI::ToDisk>, or a hash reference of the form:
+
+    { uri => ..., dir => ..., path => ... }
+
+Given a dir of "/var/www/htdocs", a uri of "http://example.com/static", and a
+path of "assets" then:
+
+    $assets will look for files in "/var/www/htdocs/assets"
+
+    $assets will "serve" files with "http://example.com/statis/assets"
+
+=cut
+
+sub set_base {
+    my $self = shift;
+    croak "No base given" unless @_;
+    my $base = 1 == @_ ? shift : { @_ };
+    croak "No base given" unless $base;
+
+    $self->{rsc} = File::Assets::Util->parse_rsc($base);
+}
+
+=head2 $assets->set_base_uri( <uri> )
+
+Set the base uri for assets 
+
+=cut
+
+sub set_base_uri {
+    my $self = shift;
+    croak "No base uri given" unless defined $_[0];
+
+    $self->{rsc}->base->uri(shift);
+}
+
+=head2 $assets->set_base_dir( <dir> )
+
+Set the base dir for assets 
+
+=cut
+
+sub set_base_dir {
+    my $self = shift;
+    croak "No base dir given" unless defined $_[0];
+
+    $self->{rsc}->base->dir(shift);
+}
+
+=head2 $assets->set_base_path( <path> )
+
+Set the base path for assets 
+
+Passing an undefined value for <path> will clear/get-rid-of the path
+
+=cut
+
+sub set_base_path {
+    my $self = shift;
+    my $path;
+    $path = defined $_[0] ? Path::Abstract->new(shift) :  Path::Abstract->new;
+    # TODO-b This is very bad
+    $self->{rsc}->_path($path);
+}
+
 sub set_output_path_scheme {
     my $self = shift;
     my $scheme = shift;
@@ -614,9 +703,36 @@ sub set_output_path_scheme {
     $self->{output_path_scheme} = $scheme;
 }
 
+=head2 $assets->set_output_path( <path> )
+
+Set the output path for assets generated by $assets
+
+See "Specifying an C<output_path> pattern" above
+
+=cut
+
 sub set_output_path {
     my $self = shift;
     $self->set_output_path_scheme(@_);
+}
+
+=head2 $assets->set_cache( <cache> )
+
+Specify the cache object or cache name to use
+
+=cut 
+
+sub set_cache {
+    my $self = shift;
+    my $cache = shift;
+
+    if ($cache) {
+        $cache = File::Assets::Cache->new(name => $cache) unless blessed $cache && $cache->isa("File::Assets::Cache");
+        $self->{cache} = $cache;
+    }
+    else {
+        delete $self->{cache};
+    }
 }
 
 sub filter {
@@ -671,7 +787,7 @@ sub _calculate_best {
     my ($best_kind, %return);
     %return = %$default if $default;
 
-    # TODO Cache the result of this
+    # TODO-f Cache the result of this
     for my $rule (@$scheme) {
         my ($condition, $action, $flags) = @$rule;
 

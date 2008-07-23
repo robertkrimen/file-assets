@@ -48,7 +48,7 @@ sub new_parse {
         }
     }
     elsif (ref $filter eq "ARRAY") {
-        # FIXME Get rid of this?
+        # TODO? Get rid of this?
         return unless $filter->[0] && $filter->[0] =~ m/^\s*$kind\s*$/i;
         my @cfg = @$filter;
         shift @cfg;

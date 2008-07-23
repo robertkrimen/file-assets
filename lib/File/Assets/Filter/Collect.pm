@@ -184,15 +184,6 @@ sub substitute {
     splice @$slice, $top_match->{rank}, 0, $asset; 
 }
 
-sub find_type {
-    my $self = shift;
-    my $frob;
-    return $frob if $frob = $self->type;
-    # FIXME Is this a good idea? What happens when you mix types?
-    return $frob if (($frob = $self->matched->[0]) && ($frob = $frob->{asset}->type));
-    return undef;
-}
-
 sub fingerprint {
     return $_[0]->fingerprint_digest;
 }
@@ -201,32 +192,11 @@ sub fingerprint {
 
 __END__
 
-#sub asset {
-#    my $self = shift;
-#    return $self->stash->{asset} ||= do {
-#        my $type = shift || $self->find_type;
-#        my $path = File::Assets::Util->build_asset_path(undef, # $output
-#            assets => $self->assets,
-#            filter => $self,
-#            name => $self->assets->name,
-#            type => $type,
-#            digest => $self->digest,
-#            fingerprint_digest => $self->fingerprint_digest,
-#        );
-#        return File::Assets::Util->parse_asset_by_path(
-#            path => $path,
-#            base => $self->assets->rsc,
-#            type => $type,
-#        );
-#    }
-#}
+sub find_type {
+    my $self = shift;
+    my $frob;
+    return $frob if $frob = $self->type;
+    return $frob if (($frob = $self->matched->[0]) && ($frob = $frob->{asset}->type));
+    return undef;
+}
 
-#    my $matched = $self->matched;
-#    for my $match (@$matched) {
-#        $match->{asset}->hide;
-#    }
-#
-#    $self->bucket->add_asset($asset);
-
-    $self->cfg->{fingerprint_digest} = 1 if $self->cfg->{check_content};
-    # TODO Set fingerprint_digest if output_path is 1?
