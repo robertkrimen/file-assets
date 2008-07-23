@@ -59,6 +59,7 @@ t/443-filter-Minifier-XS.t
 t/444-filter-Minifier-Best.t
 t/9000-x-javascript.t
 t/9001-inline-content-escaping.t
+t/9002-inline-text-javascript.t
 t/release/boilerplate.t
 t/release/pod-coverage.t
 t/release/pod.t
