@@ -119,10 +119,20 @@ SKIP: {
 {
     my $scratch = t::Test::Scratch->new;
     my $assets = File::Assets->new(base => [ "http://example.com/", $scratch->base, "/static" ], qw/minify concat/);
-    $assets->set_base(qw( uri http://example.org ), dir => $scratch->base);
+    $assets->set_base(qw( uri http://example.org ), dir => $scratch->base, path => undef);
     $assets->include("js/grape.js");
     $assets->include("js/plum.js");
 
+    compare($assets->export, qw(
+        http://example.org/assets-fde848242dae1ca8666afec08c099f6a.js
+    ));
+
+    $assets->set_base(qw( uri http://example.org ), dir => $scratch->base);
+    compare($assets->export, qw(
+        http://example.org/assets-fde848242dae1ca8666afec08c099f6a.js
+    ));
+
+    $assets->set_base(qw( uri http://example.org ), dir => $scratch->base, path => "");
     compare($assets->export, qw(
         http://example.org/assets-fde848242dae1ca8666afec08c099f6a.js
     ));
