@@ -1,6 +1,9 @@
 TODO:
  - "Duplicate assets (via ->include(...)" testing?
 
+0.060_8 Wednesday July 23 13:03:49 PDT 2008:
+ - Fix to allow "yui-compressor" to work (note the dash)
+
 0.060_7 Wednesday July 23 12:09:34 PDT 2008:
  - Reactivated *::Minifier::XS since fixed
  - Added some set_ methods to File::Assets
