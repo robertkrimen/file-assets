@@ -5,15 +5,15 @@ use strict;
 
 =head1 NAME
 
-File::Assets - Manage .css and .js assets in a web application
+File::Assets - Manage .css and .js assets for a web page or application
 
 =head1 VERSION
 
-Version 0.061
+Version 0.062
 
 =cut
 
-our $VERSION = '0.061';
+our $VERSION = '0.062';
 
 =head1 SYNOPSIS
 
@@ -21,20 +21,29 @@ our $VERSION = '0.061';
 
     my $assets = File::Assets->new( base => [ $uri_root, $dir_root ] )
 
-    $assets->set_output_path("built/") # Put minified files in $dir_root/built/... (the trailing slash is important)
+    # Put minified files in $dir_root/built/... (the trailing slash is important)
+    $assets->set_output_path("built/")
 
-    $assets->include("/static/style.css") # File::Assets will automatically detect the type based on the extension
-
-    # Then, later ...
-    
-    $assets->include("/static/main.js")
-    $assets->include("/static/style.css") # This asset won't get included twice, as File::Assets will ignore repeats of a path
+    # File::Assets will automatically detect the type based on the extension
+    $assets->include("/static/style.css")
 
     # You can also include external assets:
-
     $assets->include("http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js");
-    
-    # And then, in your .tt (Template Toolkit) files:
+
+    # This asset won't get included twice, as File::Assets will ignore repeats of a path
+    $assets->include("/static/style.css")
+
+    # And finally ...
+    $assets->export
+
+    # Or you can iterate (in order)
+    for my $asset ($assets->exports) {
+        
+        print $asset->uri, "\n";
+
+    }
+
+In your .tt (Template Toolkit) files:
 
     [% WRAPPER page.tt %]
 
@@ -67,13 +76,6 @@ our $VERSION = '0.061';
         </body>
 
     </html>
-
-    # If you want to process each asset individually, you can use exports:
-
-    for my $asset ($assets->exports) {
-
-        print $asset->uri, "\n";
-    }
 
 Use the minify option to perform minification before export
 
@@ -158,9 +160,10 @@ A pattern of C<%n%-l.%e> can result in the following:
 
 If the pattern ends with a "/", then the default pattern will be appended
 
+    xyzzy/          => xyzzy/%n%-l-%f.%e
+
 If the pattern does not have an extension-like ending, then "%.e" will be appended
 
-    xyzzy/          => xyzzy/%n%-l-%f.%e
     xyzzy           => xyzzy.%e
 
 =head2 Strange output or "sticky" content
