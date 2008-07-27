@@ -9,11 +9,11 @@ File::Assets - Manage .css and .js assets for a web page or application
 
 =head1 VERSION
 
-Version 0.062
+Version 0.063
 
 =cut
 
-our $VERSION = '0.062';
+our $VERSION = '0.063';
 
 =head1 SYNOPSIS
 
@@ -132,6 +132,10 @@ If you want to use the YUI Compressor, you should have version 2.2.5 or above.
 
 YUI Compressor 2.1.1 (and below) will *NOT WORK*
 
+To use the compressor for minification specify the path to the .jar like so:
+
+    my $assets = File::Assets->new( minify => "/path/to/yuicompressor.jar", ... )
+
 =head2 Specifying an C<output_path> pattern
 
 When aggregating or minifying assets, you need to put the result in a new file. 
@@ -199,28 +203,28 @@ Create and return a new File::Assets object.
 
 You can configure the object with the following:
     
-    base            # A hash reference with a C<uri> key/value and a C<dir> key/value.
+    base            # A hash reference with a "uri" key/value and a "dir" key/value.
                       For example: { uri => http://example.com/assets, dir => /var/www/htdocs/assets }
     
-                    # A L<URI::ToDisk> object
+                    # A URI::ToDisk object
 
-                    # A L<Path::Resource> object
+                    # A Path::Resource object
 
-    minify          # "1" or "best" - Will either use L<JavaScript::Minifier::XS> & L<CSS::Minifier::XS> or
-                                      L<JavaScript::Minifier> & L<CSS::Minifier> (depending on availability)
+    minify          # "1" or "best" - Will either use JavaScript::Minifier::XS> & CSS::Minifier::XS or
+                                      JavaScript::Minifier> & CSS::Minifier (depending on availability)
                                       for minification
 
                     # "0" or "" or undef - Don't do any minfication (this is the default)
 
                     # "./path/to/yuicompressor.jar" - Will use YUI Compressor via the given .jar for minification
 
-                    # "minifier" - Will use L<JavaScript::Minifier> & L<CSS::Minifier> for minification
+                    # "minifier" - Will use JavaScript::Minifier & CSS::Minifier for minification
 
-                    # "xs" or "minifier-xs" - Will use L<JavaScript::Minifier::XS> & L<CSS::Minifier::XS> for minification
+                    # "xs" or "minifier-xs" - Will use JavaScript::Minifier::XS & CSS::Minifier::XS for minification
 
     output_path     # Designates the output path for minified .css and .js assets
-                      The default output path pattern is C<%n%-l%-d.%e> (rooted at the dir of <base>)
-                      See above in "Specifying an C<output_path> pattern" for details
+                      The default output path pattern is "%n%-l%-d.%e" (rooted at the dir of <base>)
+                      See above in "Specifying an output_path pattern" for details
 
 =cut
 
@@ -301,8 +305,8 @@ The hash reference should contain the follwing information:
 
     type        # Optional if a path is given, required for content
     rank        # Optional, 0 by default (Less than zero is earlier, greater than zero is later)
-    base        # Optional, by default the base of $assets
     inline      # Optional, by default true if content was given, false is a path was given
+    base        # Optional, by default the base of $assets
 
 You can also pass extra information through the hash. Any extra information will be bundled in the ->attributes hash of $asset.
 For example, you can control the media type of a text/css asset by doing something like:
