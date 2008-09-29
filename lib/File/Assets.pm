@@ -9,11 +9,11 @@ File::Assets - Manage .css and .js assets for a web page or application
 
 =head1 VERSION
 
-Version 0.063
+Version 0.064
 
 =cut
 
-our $VERSION = '0.063';
+our $VERSION = '0.064';
 
 =head1 SYNOPSIS
 
@@ -900,6 +900,14 @@ L<Google::AJAX::Library>
 L<JS::YUI::Loader>
 
 L<JS::jQuery::Loader>
+
+=head1 SOURCE
+
+You can contribute or fork this project via GitHub:
+
+L<http://github.com/robertkrimen/file-assets/tree/master>
+
+    git clone git://github.com/robertkrimen/file-assets.git File-Assets
 
 =head1 BUGS
 

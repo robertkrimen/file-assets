@@ -1,6 +1,9 @@
 TODO:
  - "Duplicate assets (via ->include(...)" testing?
 
+0.064:
+ - Move repository from svn to git (github)
+
 0.063:
  - More documentation tweaks
 
