@@ -129,10 +129,10 @@ sub build_output_path {
 
     return $$path if ref $path eq "SCALAR";
 
-    $path = '%n%-l%-f.%e' unless $path;
+    $path = '%n%-l%-f%.e' unless $path;
     $path = "$path/" if blessed $path && $path->isa("Path::Class::Dir");
-    $path .= '%n%-l%-f.%e' if $path && $path =~ m/\/$/;
-    $path .= '.%e' if $path =~ m/(?:^|\/)[^.]+$/;
+    $path .= '%n%-l%-f%.e' if $path && $path =~ m/\/$/;
+    $path .= '%.e' if $path =~ m/(?:^|\/)[^.]+$/;
 
     local %_;
     if (ref $filter eq "HASH") {

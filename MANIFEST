@@ -49,6 +49,7 @@ t/009-output-path.t
 t/010-css-media.t
 t/011-cache.t
 t/012-external.t
+t/013-image.t
 t/100-usage.t
 t/400-filter.t
 t/401-filter-caching.t

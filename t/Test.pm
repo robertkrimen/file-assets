@@ -14,9 +14,14 @@ use vars qw/@EXPORT/;
 
 my $scratch;
 sub scratch {
+    my $self = shift;
+    if (shift) {
+        $scratch->cleanup if $scratch;
+        undef $scratch;
+    }
     return $scratch ||= do {
         t::Test::Scratch->new;
-    }
+    };
 }
 
 my $assets;
@@ -78,6 +83,7 @@ sub new {
     my $self = $class->SUPER::new(@_, CLEANUP => 0);
     $self->create_tree({
         (map { $_ => "/* Test file: $_ */\n" } qw(
+
             static/css/apple.css
             static/css/banana.css
             static/js/apple.js
@@ -85,7 +91,18 @@ sub new {
             js/plum.js
             css/grape.css
             other/pear.js
+
+            static/apple.png
+            static/banana.png
+            static/apple.gif
+            grape.jpg
+            plum.jpeg
+            grape.png
+            apple.gif
+            other/pear.tiff
+
         )),
+
         'static/css/cherry.css' => <<_END_,
 div.cherry {
     font-weight: bold;

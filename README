@@ -2,7 +2,7 @@ NAME
     File::Assets - Manage .css and .js assets for a web page or application
 
 VERSION
-    Version 0.064
+    Version 0.064_1
 
 SYNOPSIS
         use File::Assets

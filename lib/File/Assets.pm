@@ -9,11 +9,11 @@ File::Assets - Manage .css and .js assets for a web page or application
 
 =head1 VERSION
 
-Version 0.064
+Version 0.064_1
 
 =cut
 
-our $VERSION = '0.064';
+our $VERSION = '0.064_1';
 
 =head1 SYNOPSIS
 
@@ -191,6 +191,7 @@ use Tie::LLHash;
 use Path::Resource;
 use Scalar::Util qw/blessed refaddr/;
 use HTML::Declare qw/LINK SCRIPT STYLE/;
+use File::Copy();
 
 use File::Assets::Asset;
 use File::Assets::Cache;
@@ -586,14 +587,23 @@ sub kind {
 sub _exports {
     my $self = shift;
     my $type = shift;
-    $type = File::Assets::Util->parse_type($type);
+
+    my $image_export;
+    $image_export = 1 if $type && $type =~ m/^image(?:\/\*)?$/;
+
     my $hash = $self->_registry_hash;
     my @assets; 
-    if (defined $type) {
-        @assets = grep { $type->type eq $_->type->type } values %$hash;
+    if ($image_export) {
+        @assets = grep { "image" eq $_->type->mediaType } values %$hash;
     }
     else {
-        @assets = values %$hash;
+        $type = File::Assets::Util->parse_type($type) unless $image_export;
+        if (defined $type) {
+            @assets = grep { $type->type eq $_->type->type } values %$hash;
+        }
+        else {
+            @assets = values %$hash;
+        }
     }
 
     my %bucket;
@@ -603,21 +613,74 @@ sub _exports {
         $bucket->add_asset($asset);
     }
 
-    my $filter_scheme = $self->{filter_scheme};
-    my @global = @{ $filter_scheme->{'*'} || [] };
     my @bucket;
-    for my $kind (sort keys %bucket) {
-        push @bucket, my $bucket = $bucket{$kind};
-        $bucket->add_filter($_) for @global;
-        my $head = $bucket->kind->head;
-        for my $category (sort grep { ! m/^$head-/ } keys %$filter_scheme) {
-            next if length $category > length $kind; # Too specific
-            next unless 0 == index $kind, $category;
-            $bucket->add_filter($_) for (@{ $filter_scheme->{$category} });
+    if ($image_export) {
+        @bucket = values %bucket;
+    }
+    else {
+        my $filter_scheme = $self->{filter_scheme};
+        my @global = @{ $filter_scheme->{'*'} || [] };
+        for my $kind (sort keys %bucket) {
+            push @bucket, my $bucket = $bucket{$kind};
+            $bucket->add_filter($_) for @global;
+            my $head = $bucket->kind->head;
+            for my $category (sort grep { ! m/^$head-/ } keys %$filter_scheme) {
+                next if length $category > length $kind; # Too specific
+                next unless 0 == index $kind, $category;
+                $bucket->add_filter($_) for (@{ $filter_scheme->{$category} });
+            }
         }
     }
 
-    return map { $_->exports } @bucket;
+    my @exports;
+    for my $bucket (@bucket) {
+        my $kind = $bucket->kind;
+        if ($kind->type->mediaType eq "image") {
+            for my $asset ($bucket->exports) {
+                $self->_transfer_asset($asset, $kind);
+            }
+        }
+        else {
+            push @exports, $bucket->exports;
+        }
+    }
+
+    if (! $image_export && $type && $type->type eq "text/css") {
+        $self->_exports("image"); # Do an image export if we're explicitly exporting css
+    }
+
+    return @exports;
+}
+
+sub _transfer_asset {
+    my $self = shift;
+    my $asset = shift;
+    my $kind = shift;
+
+    # This method makes the following assumption:
+    # $self->{output_path_scheme} = [ [ qw/*/ => $scheme ] ]
+
+    my $output_path_scheme = $self->{output_path_scheme}->[0]->[1];
+    my $output_path = File::Assets::Util->build_output_path($output_path_scheme, {
+        name => $asset->path->last,
+    @_ });
+
+    my $output_file = $self->rsc->file($output_path);
+    my $asset_path = $asset->path;
+    my $asset_file = $asset->file;
+
+    croak "Asset $asset_path does not exist!" unless -e $asset_file;
+
+    if (! -e $output_file || $asset_file->stat->mtime > $output_file->stat->mtime) {
+        my $dir = $output_file->parent;
+        $dir->mkpath unless -d $dir;
+        if ($dir->stat->dev eq $asset_file->stat->dev) {
+            link $asset_file, $output_file or croak "Couldn't link $asset_file, $output_file: $!";
+        }
+        else {
+            File::Copy::copy $asset_file, $output_file or croak "Couldn't copy $asset_file, $output_file: $!";
+        }
+    }
 }
 
 =head2 $assets->set_name( <name> )

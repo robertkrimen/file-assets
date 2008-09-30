@@ -43,6 +43,7 @@ Object::Tiny
 HTML::Declare
 XML::Tiny
 IO::Scalar
+File::Copy
 _END_
 
     map { my ($pk, $vr) = split m/\s/; recommends $pk => $vr || 0 } grep { ! /^\s*#/ } split m/\n/, <<_END_;
