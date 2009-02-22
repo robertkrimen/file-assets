@@ -1,6 +1,9 @@
 TODO:
  - "Duplicate assets (via ->include(...)" testing?
 
+0.064_2:
+ - Turn on CLEANUP => 1 in Directory::Scratch so we don't spam /tmp (ANDK)
+
 0.064_1:
  - Image-export (link, copy) functionality
 

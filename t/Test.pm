@@ -80,7 +80,7 @@ use base qw/Directory::Scratch/;
 
 sub new {
     my $class = shift;
-    my $self = $class->SUPER::new(@_, CLEANUP => 0);
+    my $self = $class->SUPER::new(@_, CLEANUP => 1);
     $self->create_tree({
         (map { $_ => "/* Test file: $_ */\n" } qw(
 
