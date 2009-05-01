@@ -1,0 +1,51 @@
+From 7860d4498dddc86513e44f08393c303a336eee46 Mon Sep 17 00:00:00 2001
+From: Roman K. Belikin <roman@csmile.ru>
+Date: Thu, 26 Feb 2009 14:03:37 +1000
+Subject: [PATCH] cleaning file content
+ remove BOM marker
+ convert EOLs to unix format
+ append \n to EOF
+ append option semicolon after right bracket at and of file for correct
+ concatination of js-es
+
+
+Signed-off-by: Roman K. Belikin <roman@csmile.ru>
+---
+ lib/File/Assets/Asset/Content.pm |   14 +++++++++++++-
+ 1 files changed, 13 insertions(+), 1 deletions(-)
+
+diff --git a/lib/File/Assets/Asset/Content.pm b/lib/File/Assets/Asset/Content.pm
+index 158e527..a039303 100644
+--- a/lib/File/Assets/Asset/Content.pm
++++ b/lib/File/Assets/Asset/Content.pm
+@@ -20,7 +20,7 @@ sub content {
+     croak "Trying to get content from non-existent file ($file)" unless -e $file;
+     if (! $self->{content} || $self->stale) {
+         local $/ = undef;
+-        $self->{content} = \$file->slurp;
++        $self->{content} = \$self->_normalize_content( $file->slurp );
+         $self->{content_mtime} = $file->stat->mtime;
+         $self->{content_size} = length ${ $self->{content} };
+     }
+@@ -28,6 +28,18 @@ sub content {
+     return $self->{content};
+ }
+ 
++sub _normalize_content {
++    my ( $self, $content) = @_;
++    
++    $content =~ s{\A\xEF\xBB\xBF}{}xms;
++    $content =~ s{\r\n?}{\n}gxms;
++    $content =~ s{\s*\n?\z}{\n}xms;
++
++    $content =~ s{\)\n\z}{);\n}xms;
++
++    return $content;
++}
++
+ sub digest {
+     my $self = shift;
+     return $self->{digest} ||= do {
+-- 
+1.6.0.3
+

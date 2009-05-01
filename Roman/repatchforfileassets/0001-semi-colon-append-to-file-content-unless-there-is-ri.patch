@@ -1,0 +1,42 @@
+From 1892e2055bfd1fec35a5eaa4b151e111df7d4e3e Mon Sep 17 00:00:00 2001
+From: Roman K. Belikin <roman@csmile.ru>
+Date: Sat, 28 Feb 2009 13:10:59 +1000
+Subject: [PATCH] semi-colon append to file content unless there is right curly bracket
+ add some comments
+
+
+Signed-off-by: Roman K. Belikin <roman@csmile.ru>
+---
+ lib/File/Assets/Asset/Content.pm |   15 +++++++++++----
+ 1 files changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/lib/File/Assets/Asset/Content.pm b/lib/File/Assets/Asset/Content.pm
+index a039303..4f3a021 100644
+--- a/lib/File/Assets/Asset/Content.pm
++++ b/lib/File/Assets/Asset/Content.pm
+@@ -31,11 +31,18 @@ sub content {
+ sub _normalize_content {
+     my ( $self, $content) = @_;
+     
+-    $content =~ s{\A\xEF\xBB\xBF}{}xms;
+-    $content =~ s{\r\n?}{\n}gxms;
+-    $content =~ s{\s*\n?\z}{\n}xms;
++    # remove BOM mark
++    $content =~ s{ \A \xEF \xBB \xBF }{}xms;
+ 
+-    $content =~ s{\)\n\z}{);\n}xms;
++    # convert EOLs to unix format
++    $content =~ s{ \r \n? }{\n}gxms;
++
++    # replace trail spaces at EOF by new line
++    $content =~ s{ \s* \z }{\n}xms;
++
++    # append semi-colon at EOF unless there is curve bracket.
++    # it's possible to concatenate many javascripts correct and do nothing with css
++    $content =~ s{ (?<!\}) \n? \z }{;\n}xms;
+ 
+     return $content;
+ }
+-- 
+1.6.0.3
+

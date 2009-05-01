@@ -1,0 +1,36 @@
+From ce46b67288be334977ba45d869c8d08ee06fe0a5 Mon Sep 17 00:00:00 2001
+From: Roman K. Belikin <roman@csmile.ru>
+Date: Wed, 15 Apr 2009 11:41:31 +1100
+Subject: [PATCH] concatenate attributes of assets in bunch and set them for result asset.
+
+
+Signed-off-by: Roman K. Belikin <roman@csmile.ru>
+---
+ lib/File/Assets/Filter/Collect.pm |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
+
+diff --git a/lib/File/Assets/Filter/Collect.pm b/lib/File/Assets/Filter/Collect.pm
+index 8b5be5b..a5d9add 100644
+--- a/lib/File/Assets/Filter/Collect.pm
++++ b/lib/File/Assets/Filter/Collect.pm
+@@ -86,6 +86,17 @@ sub post {
+     }
+ 
+     $self->substitute;
++    $self->build_attributes;
++}
++
++sub build_attributes {
++    my $self = shift;
++    my %attributes;
++    foreach ( @{ $self->matched } ) {
++        my $attr = $_->{asset}->{attributes} || {};
++        @attributes{ keys %$attr } = values %$attr;
++    }
++    $self->output_asset->{attributes} = \%attributes;
+ }
+ 
+ sub skip_if_exists {
+-- 
+1.6.0.3
+

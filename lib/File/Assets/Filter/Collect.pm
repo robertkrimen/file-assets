@@ -114,6 +114,9 @@ sub should_build {
 #        $file->touch;
 #    }
 
+    # Always build if the asset doesn't exist or is of size 0
+    return 1 unless -e $self->output_asset->file && -s _;
+
     if ($self->cfg->{check_age}) {
         my $mtime = $self->mtime;
         return 1 if $mtime > $self->output_asset->file_mtime;
