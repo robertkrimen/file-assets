@@ -13,7 +13,6 @@ Version 0.064_2
 
 =cut
 
-
 our $VERSION = '0.064_2';
 
 =head1 SYNOPSIS
@@ -185,6 +184,8 @@ try disabling the cache by passing "cache => 0" to File::Assets->new
 use strict;
 use warnings;
 
+use Moose;
+
 use Object::Tiny qw/cache registry _registry_hash rsc filter_scheme output_path_scheme output_asset_scheme/;
 use File::Assets::Carp;
 
@@ -193,11 +194,17 @@ use Path::Resource;
 use Scalar::Util qw/blessed refaddr/;
 use HTML::Declare qw/LINK SCRIPT STYLE/;
 use File::Copy();
+use Algorithm::BestChoice;
 
 use File::Assets::Asset;
 use File::Assets::Cache;
 use File::Assets::Kind;
 use File::Assets::Bucket;
+
+has minifier_chooser => qw/is ro lazy_build 1/;
+sub _build_minifier_chooser {
+    return Algorithm::BestChoice->new;
+}
 
 =head2 File::Assets->new( base => <base>, output_path => <output_path>, minify => <minify> )
 
@@ -230,9 +237,10 @@ You can configure the object with the following:
 
 =cut
 
-sub new {
-    my $self = bless {}, shift;
-    local %_ = @_;
+sub BUILD {
+    my $self = shift;
+    my $given = shift;
+    local %_ = %$given;
 
     $self->set_base($_{rsc} || $_{base_rsc} || $_{base});
     $self->set_base_uri($_{uri} || $_{base_uri}) if $_{uri} || $_{base_uri};
@@ -271,8 +279,6 @@ sub new {
         elsif   ($minify =~ m/^\s*concat\s*$/i)                              { $self->filter("concat") }
         else                                                                 { croak "Don't understand minify option ($minify)" }
     }
-
-    return $self;
 }
 
 =head2 $asset = $assets->include(<path>, [ <rank>, <type>, { ... } ])
@@ -619,19 +625,28 @@ sub _exports {
         @bucket = values %bucket;
     }
     else {
-        my $filter_scheme = $self->{filter_scheme};
-        my @global = @{ $filter_scheme->{'*'} || [] };
         for my $kind (sort keys %bucket) {
             push @bucket, my $bucket = $bucket{$kind};
-            $bucket->add_filter($_) for @global;
-            my $head = $bucket->kind->head;
-            for my $category (sort grep { ! m/^$head-/ } keys %$filter_scheme) {
-                next if length $category > length $kind; # Too specific
-                next unless 0 == index $kind, $category;
-                $bucket->add_filter($_) for (@{ $filter_scheme->{$category} });
+            my $result = $self->minifier_chooser->best( $kind );
+            if ($result) {
+                $bucket->add_filter( $result->value );
             }
         }
     }
+#    else {
+#        my $filter_scheme = $self->{filter_scheme};
+#        my @global = @{ $filter_scheme->{'*'} || [] };
+#        for my $kind (sort keys %bucket) {
+#            push @bucket, my $bucket = $bucket{$kind};
+#            $bucket->add_filter($_) for @global;
+#            my $head = $bucket->kind->head;
+#            for my $category (sort grep { ! m/^$head-/ } keys %$filter_scheme) {
+#                next if length $category > length $kind; # Too specific
+#                next unless 0 == index $kind, $category;
+#                $bucket->add_filter($_) for (@{ $filter_scheme->{$category} });
+#            }
+#        }
+#    }
 
     my @exports;
     for my $bucket (@bucket) {
@@ -817,22 +832,29 @@ sub filter {
         $filter = shift;
     }
 
-    my $name = $kind ? $kind->kind : '*';
+#    my $name = $kind ? $kind->kind : '*';
+#    my $category = $self->{filter_scheme}->{$name} ||= [];
+#    push @$category, $_filter;
 
-    my $category = $self->{filter_scheme}->{$name} ||= [];
+    my $matcher;
+    $matcher = $kind->kind if $kind;
 
     my $_filter = $filter;
     unless (blessed $_filter) {
         croak "Couldn't find filter for ($filter)" unless $_filter = File::Assets::Util->parse_filter($_filter, @_, assets => $self);
     }
 
-    push @$category, $_filter;
+
+    $self->minifier_chooser->add( value => $_filter, matcher => $matcher, ranker => "length" );
 
     return $_filter;
 } 
 
 sub filter_clear {
     my $self = shift;
+    $self->{minifier_chooser} = $self->_build_minifier_chooser;
+    return;
+
     if (blessed $_[0] && $_[0]->isa("File::Assets::Filter")) {
         my $target = shift;
         while (my ($name, $category) = each %{ $self->{filter_scheme} }) {
