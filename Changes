@@ -1,3 +1,6 @@
+TODO rewrite:
+    - Determine a better way to do ->output_path & ->output_asset (customize via anonymous subroutine?)
+
 TODO:
     - "Duplicate assets (via ->include(...)" testing?
 
