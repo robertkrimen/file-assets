@@ -32,17 +32,13 @@ compare($assets->export, qw(
     http://example.com/static/base-7442c488c0bf3d37fc6bece0b5b8eea9.js
 ));
 
-$assets->set_output_path_scheme([
-    [ "*" => "static/xyzzy" ],
-]);
+$assets->set_output_path( "static/xyzzy" );
 compare($assets->export, qw(
     http://example.com/static/static/xyzzy.css
     http://example.com/static/static/xyzzy.js
 ));
 
-$assets->set_output_path_scheme([
-    [ "*" => "static/xyzzy/" ],
-]);
+$assets->set_output_path( "static/xyzzy/" );
 compare($assets->export, qw(
     http://example.com/static/static/xyzzy/base-b11bf9a77b520852e95af3e0b5c1aa95.css
     http://example.com/static/static/xyzzy/base-7442c488c0bf3d37fc6bece0b5b8eea9.js

@@ -12,7 +12,7 @@ use t::Test;
 my $scratch = t::Test->scratch;
 my $assets = t::Test->assets(
     output_path => [
-        [ ":yuicompressor" => "YUI.%e" ],
+        [ "yuicompressor" => "YUI.%e" ],
     ],
 );
 my $filter;
@@ -43,9 +43,7 @@ is(-s $scratch->file("static/YUI.js"), 0);
 
 $assets->filter_clear;
 
-$assets->{output_path_scheme} = [
-    [ ":yuicompressor" => "xyzzy/YUI.%e" ],
-];
+$assets->output_path( [ [ "yuicompressor" => "xyzzy/YUI.%e" ] ] );
 
 ok($assets->filter(js => "yuicompressor" => { jar => "./yuicompressor.jar" }));
 compare($assets->export, qw(

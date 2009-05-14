@@ -3,6 +3,11 @@ package File::Assets::Kind;
 use strict;
 use warnings;
 
+use overload
+    '""' => \&kind,
+    fallback => 1,
+;
+
 use Object::Tiny qw/kind type head tail/;
 use Carp;
 

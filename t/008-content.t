@@ -70,11 +70,10 @@ _END_
 }
 
 {
-    my $assets = assets(output_path => [
-        [ "*" => '%d.%e' ],
-            
-    ], filter => [
-        [ qw/css concat/, { skip_inline => 0, content_digest => 1 } ],
+    my $assets = assets(
+        output_path => '%d.%e',
+        filter => [
+            [ qw/css concat/, { skip_inline => 0, content_digest => 1 } ],
     ]);
     my $digest = "4622fcfb3d29438ce9298d288fdcc57e";
     ok($assets->include("css/banana.css"));
@@ -100,10 +99,8 @@ _END_
 
 SKIP: {
     skip 'install ./yuicompressor.jar to enable this test' unless -e "./yuicompressor.jar";
-    my $assets = assets(output_path => [
-        [ "*" => '%d.%e' ],
-            
-    ], filter => [
+    my $assets = assets(output_path => '%d.%e',
+    filter => [
         [ qw(css yuicompressor:./yuicompressor.jar), { skip_inline => 0, content_digest => 1 } ],
     ]);
     my $digest = "4622fcfb3d29438ce9298d288fdcc57e";
@@ -119,10 +116,8 @@ SKIP: {
 }
 
 {
-    my $assets = assets(output_path => [
-        [ "*" => '%d.%e' ],
-            
-    ], filter => [
+    my $assets = assets(output_path => '%d.%e',
+        filter => [
         [ qw/css concat/, { content_digest => 1 } ],
     ]);
     my $digest = "408d257d77bf611e910a689912e0befa";

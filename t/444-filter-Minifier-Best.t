@@ -36,7 +36,7 @@ use t::Test;
 
     ok($scratch->exists("static/assets.css"));
     ok(-s $scratch->file("static/assets.css"));
-    is($scratch->read("static/assets.css"), 'div.cherry{font-weight:bold;font-weight:100;border:1px solid #aaaaaa}div.cherry em{color:red}');
+    like($scratch->read("static/assets.css"), qr/^div.cherry{font-weight:bold;font-weight:100;border:1px solid #aaaaaa;?}div\.cherry em{color:red;?}/);
 
     ok($scratch->exists("static/assets.js"));
     ok(-s $scratch->file("static/assets.js"));
