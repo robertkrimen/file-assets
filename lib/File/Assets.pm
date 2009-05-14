@@ -865,79 +865,6 @@ sub filter_clear {
     $self->{filter_scheme} = {};
 }
 
-sub _calculate_best {
-    my $self = shift;
-    my $scheme = shift;
-    my $kind = shift;
-    my $signature = shift;
-    my $handler = shift;
-    my $default = shift;
-
-    my $key = join ":", $kind->kind, $signature;
-
-    my ($best_kind, %return);
-    %return = %$default if $default;
-
-    # TODO-f Cache the result of this
-    for my $rule (@$scheme) {
-        my ($condition, $action, $flags) = @$rule;
-
-        my $result; # 1 - A better match; -1 - A match, but worse; undef - Skip, not a match!
-
-        if (ref $condition eq "CODE") {
-            next unless defined ($result = $condition->($kind, $signature, $best_kind));
-        }
-        elsif (ref $condition eq "") {
-            if ($condition eq $key) {
-                # Best possible match
-                $result = 1;
-                $best_kind = $kind;
-            }
-            elsif ($condition eq "*" || $condition eq "default") {
-                $result = $best_kind ? -1 : 1; 
-            }
-        }
-
-        my ($condition_kind, $condition_signature) = split m/:/, $condition, 2;
-            
-        unless (defined $result) {
-
-            # No exact match, try to find the best fit...
-
-            # Signature doesn't match or is not a wildcard, so move on to the next rule
-            next if defined $condition_signature && $condition_signature ne '*' && $condition_signature ne $signature;
-
-            if (length $condition_kind && $condition_kind ne '*') {
-                $condition_kind = File::Assets::Kind->new($condition_kind);
-
-                # Type isn't the same as the asset (or whatever) kind, so move on to the next rule
-                next unless File::Assets::Util->same_type($condition_kind->type, $kind->type);
-            }
-        }
-
-        # At this point, we have a match, but is it a better match then one we already have?
-        if (! $best_kind || ($condition_kind && $condition_kind->is_better_than($best_kind))) {
-            $result = 1;
-        }
-
-        next unless defined $result;
-
-        my %action;
-        %action = $handler->($action);
-
-        if ($result > 0) {
-            $return{$_} = $action{$_} for keys %action;
-        }
-        else {
-            for (keys %action) {
-                $return{$_} = $action{$_} unless defined $action{$_};
-            }
-        }
-    }
-
-    return \%return;
-}
-
 sub _output_path_template {
     my $self = shift;
     my @criteria = @_; # $kind, $filter->signature, etc. TODO Should be a hash
@@ -952,7 +879,6 @@ sub _output_path_template {
     }
     elsif ( blessed $path && $path->isa( 'Algorithm::BestChoice' ) ) {
         my $result = $path->best( @criteria );
-confess "@criteria" unless $result;
         return $result->value;
     }
     elsif ( ref $path eq 'ARRAY' && ref $path->[0] eq 'ARRAY' ) { # Legacy crap...
@@ -977,28 +903,11 @@ confess "@criteria" unless $result;
     else {
         croak "Don't know how to get output path template from chooser $path";
     }
-
-#    if (ref $self->output_path
-#    my $filter = shift;
-
-#    my $result = $self->_calculate_best($self->{output_path_scheme}, $filter->kind, $filter->signature, sub {
-#        my $action = shift;
-#        return ref $action eq "CODE" ? %$action : path => $action;
-#    });
-
-#    return $result;
 }
 
 sub output_asset {
     my $self = shift;
     my $filter = shift;
-
-    if (0) {
-        my $result = $self->_calculate_best($self->{output_asset_scheme}, $filter->kind, $filter->signature, sub {
-            my $action = shift;
-            return %$action;
-        });
-    }
 
     my $kind = $filter->kind;
     my $output_path_template = $self->_output_path_template( $kind, $filter->signature ); # TODO Do we need this? or croak "Couldn't get output path for ", $kind->kind;
