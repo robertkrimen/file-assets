@@ -181,6 +181,7 @@ try disabling the cache by passing "cache => 0" to File::Assets->new
 
 # If the pattern does NOT begin with a "/", then the base dir will be prepended
 
+# TODO: best_minifier select_minifier filter bucket_signature asset_signature filter_signature computed_asset_signature
 use strict;
 use warnings;
 
