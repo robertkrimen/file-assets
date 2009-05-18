@@ -187,7 +187,6 @@ use warnings;
 
 use Moose;
 
-use Object::Tiny qw/cache/;
 use File::Assets::Carp;
 
 use Tie::IxHash;
@@ -218,6 +217,8 @@ sub _build_registry {
 }
 
 has rsc => qw/is rw/;
+
+has cache => qw/is rw/;
 
 =head2 File::Assets->new( base => <base>, output_path => <output_path>, minify => <minify> )
 
@@ -801,11 +802,12 @@ sub set_cache {
 
     if ($cache) {
         $cache = File::Assets::Cache->new(name => $cache) unless blessed $cache && $cache->isa("File::Assets::Cache");
-        $self->{cache} = $cache;
     }
     else {
-        delete $self->{cache};
+        $cache = undef;
     }
+
+    $self->cache( $cache );
 }
 
 sub filter {
