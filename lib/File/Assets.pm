@@ -192,10 +192,10 @@ has output_path => qw/is rw lazy_bulid 1/;
 sub _build_output_path {
 }
 
-use Object::Tiny qw/cache registry _registry_hash rsc filter_scheme output_asset_scheme/;
+use Object::Tiny qw/cache rsc filter_scheme output_asset_scheme/;
 use File::Assets::Carp;
 
-use Tie::LLHash;
+use Tie::IxHash;
 use Path::Resource;
 use Scalar::Util qw/blessed refaddr/;
 use HTML::Declare qw/LINK SCRIPT STYLE/;
@@ -210,6 +210,11 @@ use File::Assets::Bucket;
 has minifier_chooser => qw/is ro lazy_build 1/;
 sub _build_minifier_chooser {
     return Algorithm::BestChoice->new;
+}
+
+has registry => qw/is ro lazy_build 1/;
+sub _build_registry {
+    return Tie::IxHash->new;
 }
 
 =head2 File::Assets->new( base => <base>, output_path => <output_path>, minify => <minify> )
@@ -265,10 +270,6 @@ sub BUILD {
 #    $rsc->dir($_{dir} || $_{base_dir}) if $_{dir} || $_{base_dir};
 #    $rsc->path($_{base_path}) if $_{base_path};
 #    $self->{rsc} = $rsc;
-
-    my %registry;
-    $self->{registry} = tie(%registry, qw/Tie::LLHash/, { lazy => 1 });
-    $self->{_registry_hash} = \%registry;
 
     $self->{filter_scheme} = {};
     my $filter_scheme = $_{filter} || $_{filters} || $_{filter_scheme} || [];
@@ -529,7 +530,7 @@ Returns 1 if no assets have been included yet, 0 otherwise.
 
 sub empty {
     my $self = shift;
-    return keys %{ $self->_registry_hash } ? 0 : 1;
+    return $self->registry->Length ? 0 : 1;
 }
 
 =head2 $assets->exists( <path> )
@@ -542,7 +543,7 @@ sub exists {
     my $self = shift;
     my $key = shift;
 
-    return exists $self->_registry_hash->{$key} ? 1 : 0;
+    return $self->registry->EXISTS( $key ) ? 1 : 0;
 }
 
 =head2 $assets->store( <asset> )
@@ -555,7 +556,8 @@ sub store {
     my $self = shift;
     my $asset = shift;
 
-    return $self->_registry_hash->{$asset->key} = $asset;
+    $self->registry->STORE( $asset->key, $asset );
+    return $asset;
 }
 
 =head2 $asset = $assets->fetch( <path> )
@@ -570,7 +572,7 @@ sub fetch {
     my $self = shift;
     my $key = shift;
 
-    return $self->_registry_hash->{$key};
+    return $self->registry->FETCH( $key );
 }
 
 sub fetch_or_store {
@@ -604,18 +606,17 @@ sub _exports {
     my $image_export;
     $image_export = 1 if $type && $type =~ m/^image(?:\/\*)?$/;
 
-    my $hash = $self->_registry_hash;
-    my @assets; 
+    my @assets = $self->registry->Values; 
     if ($image_export) {
-        @assets = grep { "image" eq $_->type->mediaType } values %$hash;
+        @assets = grep { "image" eq $_->type->mediaType } @assets;
     }
     else {
         $type = File::Assets::Util->parse_type($type) unless $image_export;
         if (defined $type) {
-            @assets = grep { $type->type eq $_->type->type } values %$hash;
+            @assets = grep { $type->type eq $_->type->type } @assets;
         }
         else {
-            @assets = values %$hash;
+            # Don't need to touch @assets
         }
     }
 
