@@ -187,12 +187,7 @@ use warnings;
 
 use Moose;
 
-# Really more of an output_path chooser
-has output_path => qw/is rw lazy_bulid 1/;
-sub _build_output_path {
-}
-
-use Object::Tiny qw/cache rsc/;
+use Object::Tiny qw/cache/;
 use File::Assets::Carp;
 
 use Tie::IxHash;
@@ -207,6 +202,11 @@ use File::Assets::Cache;
 use File::Assets::Kind;
 use File::Assets::Bucket;
 
+# Really more of an output_path chooser
+has output_path => qw/is rw lazy_bulid 1/;
+sub _build_output_path {
+}
+
 has minifier_chooser => qw/is ro lazy_build 1/;
 sub _build_minifier_chooser {
     return Algorithm::BestChoice->new;
@@ -216,6 +216,8 @@ has registry => qw/is ro lazy_build 1/;
 sub _build_registry {
     return Tie::IxHash->new;
 }
+
+has rsc => qw/is rw/;
 
 =head2 File::Assets->new( base => <base>, output_path => <output_path>, minify => <minify> )
 
@@ -724,7 +726,7 @@ sub set_base {
     my $base = 1 == @_ ? shift : { @_ };
     croak "No base given" unless $base;
 
-    $self->{rsc} = File::Assets::Util->parse_rsc( $base );
+    $self->rsc( File::Assets::Util->parse_rsc( $base ) );
 }
 
 =head2 $assets->set_base_uri( <uri> )
