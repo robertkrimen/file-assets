@@ -1,0 +1,27 @@
+asset_signature:
+    sha1_hex( 
+        asset.file.path
+        asset.file.mtime
+        asset.file.size
+    )
+
+bucket_signature:
+    sha1_hex(
+        kind
+        map { .signature } @asset
+    )
+
+filter_signature:
+    name
+
+filter_sequence_signature:
+    sha1_hex(
+        map { .signature } @filter
+    )
+
+computed_asset_signature:
+    sha1_hex( 
+        asset.file.path
+        asset.file.mtime
+        asset.file.size
+    )
