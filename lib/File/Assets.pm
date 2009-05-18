@@ -192,7 +192,7 @@ has output_path => qw/is rw lazy_bulid 1/;
 sub _build_output_path {
 }
 
-use Object::Tiny qw/cache rsc output_asset_scheme/;
+use Object::Tiny qw/cache rsc/;
 use File::Assets::Carp;
 
 use Tie::IxHash;
