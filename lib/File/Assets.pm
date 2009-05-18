@@ -192,7 +192,7 @@ has output_path => qw/is rw lazy_bulid 1/;
 sub _build_output_path {
 }
 
-use Object::Tiny qw/cache rsc filter_scheme output_asset_scheme/;
+use Object::Tiny qw/cache rsc output_asset_scheme/;
 use File::Assets::Carp;
 
 use Tie::IxHash;
@@ -271,7 +271,6 @@ sub BUILD {
 #    $rsc->path($_{base_path}) if $_{base_path};
 #    $self->{rsc} = $rsc;
 
-    $self->{filter_scheme} = {};
     my $filter_scheme = $_{filter} || $_{filters} || $_{filter_scheme} || [];
     for my $rule (@$filter_scheme) {
         $self->filter(@$rule);
@@ -640,20 +639,6 @@ sub _exports {
             }
         }
     }
-#    else {
-#        my $filter_scheme = $self->{filter_scheme};
-#        my @global = @{ $filter_scheme->{'*'} || [] };
-#        for my $kind (sort keys %bucket) {
-#            push @bucket, my $bucket = $bucket{$kind};
-#            $bucket->add_filter($_) for @global;
-#            my $head = $bucket->kind->head;
-#            for my $category (sort grep { ! m/^$head-/ } keys %$filter_scheme) {
-#                next if length $category > length $kind; # Too specific
-#                next unless 0 == index $kind, $category;
-#                $bucket->add_filter($_) for (@{ $filter_scheme->{$category} });
-#            }
-#        }
-#    }
 
     my @exports;
     for my $bucket (@bucket) {
@@ -832,10 +817,6 @@ sub filter {
         $filter = shift;
     }
 
-#    my $name = $kind ? $kind->kind : '*';
-#    my $category = $self->{filter_scheme}->{$name} ||= [];
-#    push @$category, $_filter;
-
     my $matcher;
     $matcher = $kind->kind if $kind;
 
@@ -853,18 +834,7 @@ sub filter {
 sub filter_clear {
     my $self = shift;
     $self->{minifier_chooser} = $self->_build_minifier_chooser;
-    return;
-
-    if (blessed $_[0] && $_[0]->isa("File::Assets::Filter")) {
-        my $target = shift;
-        while (my ($name, $category) = each %{ $self->{filter_scheme} }) {
-            my @filters = grep { $_ != $target } @$category;
-            $self->{filter_scheme}->{$name} = \@filters;
-        }
-        return;
-    }
-    carp __PACKAGE__, "::filter_clear(\$type) is deprecated, nothing happens" and return if @_;
-    $self->{filter_scheme} = {};
+    # TODO This method is pretty useless, we should deprecate it
 }
 
 sub _output_path_template {
