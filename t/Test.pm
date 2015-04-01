@@ -8,6 +8,7 @@ use Directory::Scratch;
 use Test::Memory::Cycle;
 use Test::More;
 use HTML::Declare qw/LINK SCRIPT STYLE/;
+use HTML::TokeParser;
 use base qw/Exporter/;
 use vars qw/@EXPORT/;
 @EXPORT = qw/compare/;
@@ -67,7 +68,32 @@ sub compare ($;@) {
             die "Don't understand: @_";
         }
     }
-    return is($expect, join "\n", @content);
+
+    my $got = join "\n", @content;
+
+    # convert the HTML for both $got and $expected into a uniform string for comparison
+    # (attributes out of order are put in a set order, etc.)
+
+    for ( $expect, $got ) {
+        my $parser = HTML::TokeParser->new(\$got);
+
+        my @html;
+        while ( my $token = $parser->get_token ) {
+            if ( $token->[0] eq 'S' ) {
+                push( @html, $token->[1], map { $_, $token->[2]{$_} } sort keys %{ $token->[2] } );
+            }
+            elsif ( $token->[0] eq 'E' or $token->[0] eq 'T' or $token->[0] eq 'C' or $token->[0] eq 'D' ) {
+                push( @html, $token->[1] );
+            }
+            else {
+                push( @html, @{$token} );
+            }
+        }
+
+        $_ = join( "\n", @html );
+    }
+
+    return is($expect, $got);
 }
 
 END {
@@ -115,7 +141,7 @@ div.cherry em {
     color: red;
 }
 _END_
-        
+
         'static/js/cherry.js' => <<_END_,
 (function(){
     alert("Nothing happens.");
@@ -125,7 +151,7 @@ _END_
     /* Nothing happens */
     return function(alpha, beta, delta) {
         return alpha + beta + delta;
-    } 
+    }
 
 }());
 _END_

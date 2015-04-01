@@ -1,6 +1,6 @@
 use inc::Module::Install 0.64;
 
-#use 5.008001; 
+#use 5.008001;
 #perl_version '5.8.1';
 
 name     'File-Assets';
@@ -27,6 +27,7 @@ resources repository => 'http://github.com/robertkrimen/file-assets/tree/master'
 Test::Memory::Cycle
 Directory::Scratch
 Test::More
+HTML::TokeParser
 _END_
 
     map { my ($pk, $vr) = split m/\s/; requires $pk => $vr || 0 } grep { ! /^\s*#/ } split m/\n/, <<_END_;
